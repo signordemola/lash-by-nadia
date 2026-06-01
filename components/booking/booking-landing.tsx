@@ -23,7 +23,7 @@ export function BookingLanding() {
     <SmoothScroll>
       <div className="min-h-screen bg-background text-foreground selection:bg-accent/20 selection:text-accent">
         {/* Hero */}
-        <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden text-background">
+        <section className="relative h-svh min-h-160 w-full overflow-hidden text-background">
           <div className="absolute inset-0 animate-hero-zoom will-change-transform">
             <Image
               src="/hero-lashes.jpg"
@@ -34,11 +34,11 @@ export function BookingLanding() {
               style={{ transform: `translate3d(0, ${scrollY * 0.25}px, 0)` }}
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/30 to-foreground/40" />
-          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-foreground/40 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-foreground/85 via-foreground/30 to-foreground/40" />
+          <div className="absolute inset-x-0 top-0 h-32 bg-linear-to-b from-foreground/40 to-transparent" />
 
           <nav className="relative z-10">
-            <div className="mx-auto flex max-w-screen-xl animate-fade-up items-center justify-between p-6">
+            <div className="mx-auto flex max-w-7xl animate-fade-up items-center justify-between p-6">
               <Link href="/" className="group flex items-center gap-3">
                 <LashMark size={26} className="text-background" />
                 <span className="block">
@@ -73,7 +73,7 @@ export function BookingLanding() {
             </div>
           </nav>
 
-          <div className="relative z-10 mx-auto flex h-[calc(100svh-92px)] min-h-[548px] max-w-screen-xl flex-col justify-end px-6 pb-12 md:pb-20">
+          <div className="relative z-10 mx-auto flex h-[calc(100svh-92px)] min-h-137 max-w-7xl flex-col justify-end px-6 pb-12 md:pb-20">
             <div className="max-w-[34ch] animate-fade-up [animation-delay:120ms]">
               <span className="mb-6 inline-flex items-center gap-2.5 font-mono text-[10px] tracking-[0.3em] uppercase">
                 <span className="size-1.5 animate-pulse-dot rounded-full bg-accent" />
@@ -122,7 +122,7 @@ export function BookingLanding() {
           </div>
         </section>
 
-        <main className="mx-auto max-w-screen-xl px-6">
+        <main className="mx-auto max-w-7xl px-6">
           {/* Services + Booking */}
           <section id="services" className="py-20 md:py-28">
             <div className="mb-12 flex animate-fade-up flex-col gap-3 md:mb-16 md:flex-row md:items-baseline md:justify-between">
@@ -160,7 +160,7 @@ export function BookingLanding() {
                     }}
                   >
                     <span
-                      className={`absolute top-0 left-0 h-full w-[2px] origin-top transition-all duration-500 ${
+                      className={`absolute top-0 left-0 h-full w-0.5 origin-top transition-all duration-500 ${
                         isSelected
                           ? "scale-y-100 bg-accent"
                           : "scale-y-0 bg-foreground group-hover:scale-y-100"
@@ -224,7 +224,7 @@ export function BookingLanding() {
             {selectedService && (
               <div
                 key={selectedService.slug + String(confirming)}
-                className="mt-8 animate-fade-up overflow-hidden rounded-sm border border-accent/40 bg-accent/[0.04]"
+                className="mt-8 animate-fade-up overflow-hidden rounded-sm border border-accent/40 bg-accent/4"
               >
                 {!confirming ? (
                   <div className="flex flex-col gap-6 p-7 md:flex-row md:items-center md:justify-between md:p-8">
@@ -366,7 +366,7 @@ export function BookingLanding() {
         </main>
 
         <footer className="mt-12 bg-foreground px-6 py-16 text-background">
-          <div className="mx-auto grid max-w-screen-xl items-start gap-10 md:grid-cols-12">
+          <div className="mx-auto grid max-w-7xl items-start gap-10 md:grid-cols-12">
             <div className="md:col-span-4">
               <div className="mb-5 flex items-center gap-3">
                 <LashMark size={28} className="text-background" />
@@ -421,7 +421,7 @@ export function BookingLanding() {
               </Link>
             </div>
           </div>
-          <div className="mx-auto mt-14 flex max-w-screen-xl flex-col gap-3 border-t border-background/10 pt-6 font-mono text-[10px] tracking-[0.2em] uppercase opacity-40 md:flex-row md:justify-between">
+          <div className="mx-auto mt-14 flex max-w-7xl flex-col gap-3 border-t border-background/10 pt-6 font-mono text-[10px] tracking-[0.2em] uppercase opacity-40 md:flex-row md:justify-between">
             <span>© 2026 Lash by Nadia · Made in London</span>
             <span>
               <Link href="/portal" className="underline hover:opacity-100">

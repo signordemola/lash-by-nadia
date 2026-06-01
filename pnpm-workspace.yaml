@@ -1,7 +1,6 @@
 packages: []
 
 minimumReleaseAge: 1440
-trustPolicy: no-downgrade
 
 allowBuilds:
   sharp: true
