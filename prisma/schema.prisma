@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Service {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  name         String
+  duration     Int
+  price        Int
+  deposit      Int
+  isActive     Boolean       @default(true)
+  displayOrder Int           @default(0)
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Client {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  name           String
+  phone          String
+  allergies      String?
+  referralSource String?
+  noShowCount    Int           @default(0)
+  isFlagged      Boolean       @default(false)
+  appointments   Appointment[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Appointment {
+  id                    String            @id @default(cuid())
+  client                Client            @relation(fields: [clientId], references: [id])
+  clientId              String
+  service               Service           @relation(fields: [serviceId], references: [id])
+  serviceId             String
+  startsAt              DateTime
+  endsAt                DateTime
+  status                AppointmentStatus @default(CONFIRMED)
+  depositAmount         Int
+  depositStatus         DepositStatus     @default(HELD)
+  stripePaymentIntentId String?           @unique
+  manageToken           String            @unique
+  policyAgreedAt        DateTime?
+  cancellationReason    String?
+  cancelledAt           DateTime?
+  noShowMarkedAt        DateTime?
+  reminder24hSentAt     DateTime?
+  reminder2hSentAt      DateTime?
+  ownerNotes            String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+enum AppointmentStatus {
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum DepositStatus {
+  HELD
+  REFUNDED
+  CREDITED
+  FORFEITED
+}
+
+model BlockedDate {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model WeeklyAvailability {
+  id        String  @id @default(cuid())
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  isActive  Boolean @default(true)
+}
+
+model OwnerSession {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+}
