@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useLenis } from "lenis/react"
 import { services, policy } from "@/lib/studio-data"
 import { LashMark } from "@/components/shared/lash-mark"
@@ -12,6 +13,7 @@ export function BookingLanding() {
   const [selected, setSelected] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [scrollY, setScrollY] = useState(0)
+  const router = useRouter()
 
   useLenis(({ scroll }) => setScrollY(scroll))
 
@@ -240,7 +242,11 @@ export function BookingLanding() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setConfirming(true)}
+                      onClick={() => {
+                        if (selectedService) {
+                          router.push(`/${selectedService.slug}`)
+                        }
+                      }}
                       className="shrink-0 rounded-sm bg-foreground px-7 py-4 text-xs font-medium tracking-[0.18em] whitespace-nowrap text-background uppercase transition-colors hover:bg-accent"
                     >
                       Continue →

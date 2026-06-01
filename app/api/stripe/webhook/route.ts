@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     where: { slug: metadata.serviceSlug },
   })
   if (!service) {
-    return NextResponse.json({ error: "Service not found" }, { status: 400 })
+    return NextResponse.json({ received: true })
   }
 
   const existingClient = await prisma.client.findUnique({
@@ -72,11 +72,13 @@ export async function POST(request: NextRequest) {
     },
   })
 
+  await prisma.slotHold.deleteMany({ where: { startsAt } })
+
   await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to: [metadata.email],
     subject: `Booking confirmed — ${service.name}`,
-    text: `Hi ${metadata.name},\n\nYour ${service.name} appointment is confirmed for ${metadata.date} at ${metadata.time}.\n\nManage your booking: ${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${manageToken}`,
+    text: `Hi ${metadata.name},\n\nYour ${service.name} appointment is confirmed for ${metadata.date} at ${metadata.time}.\n\nManage your booking: ${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${manageToken}\n\nDeposit paid: £${(service.deposit / 100).toFixed(2)}`,
   })
 
   return NextResponse.json({ received: true })

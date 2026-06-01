@@ -39,35 +39,55 @@ export async function getAvailableSlots(
 ): Promise<SlotOption[]> {
   const dayOfWeek = getDay(date)
 
-  const [service, availability, existingAppointments] = await Promise.all([
-    prisma.service.findUnique({ where: { slug: serviceSlug } }),
-    prisma.weeklyAvailability.findFirst({
-      where: { dayOfWeek, isActive: true },
-    }),
-    prisma.appointment.findMany({
-      where: {
-        startsAt: {
-          gte: startOfDay(date),
-          lt: startOfDay(new Date(date.getTime() + 86400000)),
+  const [service, availability, existingAppointments, heldSlots] =
+    await Promise.all([
+      prisma.service.findUnique({ where: { slug: serviceSlug } }),
+      prisma.weeklyAvailability.findFirst({
+        where: { dayOfWeek, isActive: true },
+      }),
+      prisma.appointment.findMany({
+        where: {
+          startsAt: {
+            gte: startOfDay(date),
+            lt: startOfDay(new Date(date.getTime() + 86400000)),
+          },
+          status: "CONFIRMED",
         },
-        status: "CONFIRMED",
-      },
-    }),
-  ])
+      }),
+      prisma.slotHold.findMany({
+        where: {
+          startsAt: {
+            gte: startOfDay(date),
+            lt: startOfDay(new Date(date.getTime() + 86400000)),
+          },
+          expiresAt: { gt: new Date() },
+        },
+      }),
+    ])
 
   if (!service || !availability) return []
 
-  const slotDuration = service.duration + BUFFER_MINUTES
   const startMinutes = timeToMinutes(availability.startTime)
   const endMinutes = timeToMinutes(availability.endTime)
   const now = new Date()
+
+  const blockedIntervals: { start: Date; end: Date }[] = [
+    ...existingAppointments.map((a: { startsAt: Date; endsAt: Date }) => ({
+      start: a.startsAt,
+      end: a.endsAt,
+    })),
+    ...heldSlots.map((h: { startsAt: Date; endsAt: Date }) => ({
+      start: h.startsAt,
+      end: h.endsAt,
+    })),
+  ]
 
   const slots: SlotOption[] = []
 
   for (
     let mins = startMinutes;
     mins + service.duration <= endMinutes;
-    mins += slotDuration
+    mins += BUFFER_MINUTES
   ) {
     const slotStart = setMinutes(
       setHours(startOfDay(date), Math.floor(mins / 60)),
@@ -77,10 +97,10 @@ export async function getAvailableSlots(
 
     if (isBefore(slotStart, now)) continue
 
-    const overlaps = existingAppointments.some((apt) =>
+    const overlaps = blockedIntervals.some((interval) =>
       areIntervalsOverlapping(
         { start: slotStart, end: slotEnd },
-        { start: apt.startsAt, end: apt.endsAt }
+        { start: interval.start, end: interval.end }
       )
     )
     if (overlaps) continue

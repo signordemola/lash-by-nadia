@@ -4,6 +4,8 @@ import { stripe } from "@/lib/stripe"
 import { CreateBookingSchema } from "@/schemas/booking.schema"
 import { getAvailableSlots } from "@/lib/availability"
 
+const HOLD_TTL = 120_000
+
 export async function POST(request: NextRequest) {
   const body = await request.json()
   const parsed = CreateBookingSchema.safeParse(body)
@@ -20,8 +22,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Service not found" }, { status: 404 })
   }
 
-  const date = new Date(dateStr)
-  const slots = await getAvailableSlots(serviceSlug, date)
+  const [hours, minutes] = time.split(":").map(Number)
+  const startsAt = new Date(dateStr)
+  startsAt.setHours(hours, minutes, 0, 0)
+
+  const existingHold = await prisma.slotHold.findFirst({
+    where: { startsAt, expiresAt: { gt: new Date() } },
+  })
+
+  if (!existingHold) {
+    await prisma.slotHold.create({
+      data: {
+        startsAt,
+        endsAt: new Date(startsAt.getTime() + service.duration * 60000),
+        expiresAt: new Date(Date.now() + HOLD_TTL),
+      },
+    })
+  }
+
+  const slots = await getAvailableSlots(serviceSlug, new Date(dateStr))
   const slot = slots.find((s) => s.time === time)
   if (!slot) {
     return NextResponse.json(
