@@ -1,30 +1,22 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useBookingState } from "@/hooks/use-booking-state"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { services, policy } from "@/lib/studio-data"
 
-export default function PolicyPage() {
-  const router = useRouter()
-  const { serviceSlug, date, time, clientInfo, agreePolicy, goToStep } =
-    useBookingState()
+export function PolicyStep() {
+  const { serviceSlug, date, time, agreePolicy, goToStep } = useBookingState()
   const [agreed, setAgreed] = useState(false)
 
-  if (!serviceSlug || !date || !time || !clientInfo) {
-    router.replace("/")
-    return null
-  }
-
-  const service = services.find((s) => s.slug === serviceSlug)!
+  const service = services.find((s) => s.slug === serviceSlug)
+  if (!service || !date || !time) return null
 
   function handleConfirm() {
     if (!agreed) return
     agreePolicy()
-    router.push("/payment")
   }
 
   return (

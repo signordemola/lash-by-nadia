@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { LashMark } from "@/components/shared/lash-mark"
+import { HoldTimer } from "@/components/booking/hold-timer"
 
 export const metadata: Metadata = {
   title: "Book a Treatment — Lash by Nadia",
@@ -31,6 +32,7 @@ export default function BookingLayout({
           </Link>
         </div>
       </header>
+      <HoldTimer />
       <main className="mx-auto max-w-screen-xl px-6 py-12 md:py-20">
         {children}
       </main>

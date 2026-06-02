@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect } from "react"
+import { useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useBookingState } from "@/hooks/use-booking-state"
@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { services } from "@/lib/studio-data"
 
-function ConfirmationContent() {
+export function ConfirmationStep({
+  showFallback = false,
+}: {
+  showFallback?: boolean
+}) {
   const searchParams = useSearchParams()
   const { serviceSlug, date, time, clientInfo, reset } = useBookingState()
 
@@ -21,7 +25,11 @@ function ConfirmationContent() {
     }
   }, [paymentIntent, reset])
 
-  if (!serviceSlug || !date || !time || !clientInfo || !service) {
+  if (
+    showFallback &&
+    !paymentIntent &&
+    (!serviceSlug || !date || !time || !clientInfo || !service)
+  ) {
     return (
       <div className="mx-auto max-w-xl text-center">
         <StatusBadge variant="accent" className="mb-6">
@@ -33,6 +41,25 @@ function ConfirmationContent() {
         <p className="mb-8 text-sm text-muted-foreground">
           Your booking is being processed. You&apos;ll receive a confirmation
           email shortly.
+        </p>
+        <Link href="/">
+          <Button>Book another appointment</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  if (!serviceSlug || !date || !time || !clientInfo || !service) {
+    return (
+      <div className="mx-auto max-w-xl text-center">
+        <StatusBadge variant="accent" className="mb-6">
+          Confirmed
+        </StatusBadge>
+        <h1 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
+          Thank you.
+        </h1>
+        <p className="mb-8 text-sm text-muted-foreground">
+          Your booking has been confirmed.
         </p>
         <Link href="/">
           <Button>Book another appointment</Button>
@@ -104,13 +131,5 @@ function ConfirmationContent() {
         </Link>
       </div>
     </div>
-  )
-}
-
-export default function ConfirmationPage() {
-  return (
-    <Suspense>
-      <ConfirmationContent />
-    </Suspense>
   )
 }

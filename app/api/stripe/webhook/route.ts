@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import { Prisma } from "@/generated/prisma/client"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/db"
 import { generateManageToken } from "@/lib/tokens"
+import { formatCurrency } from "@/lib/utils"
 import { resend } from "@/lib/resend"
 
 export async function POST(request: NextRequest) {
@@ -40,7 +42,15 @@ export async function POST(request: NextRequest) {
   })
 
   const client = existingClient
-    ? existingClient
+    ? await prisma.client.update({
+        where: { id: existingClient.id },
+        data: {
+          name: metadata.name,
+          phone: metadata.phone,
+          allergies: metadata.allergies || undefined,
+          referralSource: metadata.referralSource || undefined,
+        },
+      })
     : await prisma.client.create({
         data: {
           email: metadata.email,
@@ -58,19 +68,29 @@ export async function POST(request: NextRequest) {
 
   const manageToken = generateManageToken()
 
-  await prisma.appointment.create({
-    data: {
-      clientId: client.id,
-      serviceId: service.id,
-      startsAt,
-      endsAt,
-      depositAmount: service.deposit,
-      depositStatus: "HELD",
-      stripePaymentIntentId: paymentIntent.id,
-      manageToken,
-      policyAgreedAt: new Date(),
-    },
-  })
+  try {
+    await prisma.appointment.create({
+      data: {
+        clientId: client.id,
+        serviceId: service.id,
+        startsAt,
+        endsAt,
+        depositAmount: service.deposit,
+        depositStatus: "HELD",
+        stripePaymentIntentId: paymentIntent.id,
+        manageToken,
+        policyAgreedAt: new Date(),
+      },
+    })
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      return NextResponse.json({ received: true })
+    }
+    throw e
+  }
 
   await prisma.slotHold.deleteMany({ where: { startsAt } })
 
@@ -78,7 +98,7 @@ export async function POST(request: NextRequest) {
     from: process.env.EMAIL_FROM!,
     to: [metadata.email],
     subject: `Booking confirmed — ${service.name}`,
-    text: `Hi ${metadata.name},\n\nYour ${service.name} appointment is confirmed for ${metadata.date} at ${metadata.time}.\n\nManage your booking: ${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${manageToken}\n\nDeposit paid: £${(service.deposit / 100).toFixed(2)}`,
+    text: `Hi ${metadata.name},\n\nYour ${service.name} appointment is confirmed for ${metadata.date} at ${metadata.time}.\n\nManage your booking: ${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${manageToken}\n\nDeposit paid: ${formatCurrency(service.deposit)}`,
   })
 
   return NextResponse.json({ received: true })

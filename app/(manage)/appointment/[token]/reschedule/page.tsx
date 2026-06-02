@@ -19,6 +19,7 @@ export default function ReschedulePage() {
 
   const [appointment, setAppointment] = useState<AppointmentInfo | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [error, setError] = useState<string | null>(null)
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
 
   const { data: slots = [], isLoading } = useAvailability(
@@ -28,8 +29,12 @@ export default function ReschedulePage() {
 
   useEffect(() => {
     fetch(`/api/appointments/${token}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load")
+        return r.json()
+      })
       .then(setAppointment)
+      .catch(() => setError("Failed to load appointment details."))
   }, [token])
 
   const [submitting, setSubmitting] = useState(false)
@@ -37,7 +42,6 @@ export default function ReschedulePage() {
     newDate: string
     newTime: string
   } | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
   async function handleSlotSelect(time: string) {
     setSubmitting(true)

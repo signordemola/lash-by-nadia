@@ -1,19 +1,21 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useBookingState } from "@/hooks/use-booking-state"
 import { useClientLookup } from "@/hooks/use-client-lookup"
+import { useQueryClient } from "@tanstack/react-query"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { StatusBadge } from "@/components/shared/status-badge"
+import { services } from "@/lib/studio-data"
 import { NewClientSchema } from "@/schemas/booking.schema"
 import type { ClientInfo } from "@/hooks/use-booking-state"
 
-export default function IntakePage() {
-  const router = useRouter()
-  const { serviceSlug, date, time, setClientInfo, goToStep } = useBookingState()
+export function IntakeStep() {
+  const { serviceSlug, date, time, setClientInfo, goToStep, releaseHold } =
+    useBookingState()
+  const queryClient = useQueryClient()
   const [email, setEmail] = useState("")
   const lookup = useClientLookup()
   const [form, setForm] = useState<ClientInfo>({
@@ -25,10 +27,7 @@ export default function IntakePage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  if (!serviceSlug || !date || !time) {
-    router.replace("/")
-    return null
-  }
+  if (!serviceSlug || !date || !time) return null
 
   function handleLookup() {
     lookup.mutate(email, {
@@ -60,7 +59,6 @@ export default function IntakePage() {
     }
     setErrors({})
     setClientInfo(parsed.data)
-    router.push("/policy")
   }
 
   return (
@@ -72,6 +70,16 @@ export default function IntakePage() {
       <h1 className="mb-8 text-3xl font-bold tracking-tight md:text-4xl">
         Your details.
       </h1>
+
+      <div className="mb-8 rounded-sm border border-border bg-muted/30 p-4">
+        <h2 className="mb-1 font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
+          Your booking
+        </h2>
+        <p className="text-sm font-medium">
+          {services.find((s) => s.slug === serviceSlug)?.name ?? serviceSlug} ·{" "}
+          {date} at {time}
+        </p>
+      </div>
 
       {!lookup.data && (
         <div className="mb-10 rounded-sm border border-border p-6">
@@ -191,7 +199,13 @@ export default function IntakePage() {
           <div className="flex justify-between border-t border-border pt-6">
             <Button
               variant="link"
-              onClick={() => goToStep("slot")}
+              onClick={() => {
+                releaseHold()
+                queryClient.invalidateQueries({
+                  queryKey: ["availability", serviceSlug, date],
+                })
+                goToStep("slot")
+              }}
               className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase hover:text-foreground"
             >
               Back

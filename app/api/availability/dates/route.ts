@@ -1,0 +1,17 @@
+import { NextRequest, NextResponse } from "next/server"
+import { getAvailableDates } from "@/lib/availability"
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl
+  const serviceSlug = searchParams.get("serviceSlug")
+  const monthStr = searchParams.get("month")
+
+  if (!serviceSlug || !monthStr) {
+    return NextResponse.json({ error: "Missing params" }, { status: 400 })
+  }
+
+  const month = new Date(monthStr + "-01")
+  const dates = await getAvailableDates(serviceSlug, month)
+
+  return NextResponse.json(dates)
+}

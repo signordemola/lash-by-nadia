@@ -11,11 +11,10 @@ import { SmoothScroll } from "@/components/shared/smooth-scroll"
 
 export function BookingLanding() {
   const [selected, setSelected] = useState<string | null>(null)
-  const [confirming, setConfirming] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const router = useRouter()
 
-  useLenis(({ scroll }) => setScrollY(scroll))
+  const lenis = useLenis(({ scroll }) => setScrollY(scroll))
 
   const selectedService = services.find((s) => s.slug === selected)
 
@@ -147,8 +146,11 @@ export function BookingLanding() {
                     type="button"
                     key={s.slug}
                     onClick={() => {
-                      setSelected(isSelected ? null : s.slug)
-                      setConfirming(false)
+                      const next = isSelected ? null : s.slug
+                      setSelected(next)
+                      if (next) {
+                        lenis?.scrollTo("#booking", { offset: -80 })
+                      }
                     }}
                     className={`group relative flex w-full flex-col rounded-sm border p-6 text-left transition-all duration-500 md:flex-row md:items-center md:p-7 ${
                       isSelected
@@ -223,87 +225,34 @@ export function BookingLanding() {
 
             {selectedService && (
               <div
-                key={selectedService.slug + String(confirming)}
+                key={selectedService.slug}
                 className="mt-8 animate-fade-up overflow-hidden rounded-sm border border-accent/40 bg-accent/4"
               >
-                {!confirming ? (
-                  <div className="flex flex-col gap-6 p-7 md:flex-row md:items-center md:justify-between md:p-8">
-                    <div>
-                      <span className="mb-2 block font-mono text-[10px] tracking-[0.22em] text-accent uppercase">
-                        02: Confirm
+                <div className="flex flex-col gap-6 p-7 md:flex-row md:items-center md:justify-between md:p-8">
+                  <div>
+                    <span className="mb-2 block font-mono text-[10px] tracking-[0.22em] text-accent uppercase">
+                      02: Confirm
+                    </span>
+                    <p className="text-lg font-bold tracking-tight md:text-xl">
+                      {selectedService.name} · £{selectedService.price}
+                      <span className="text-muted-foreground">
+                        {" "}
+                        , pick a date & time next.
                       </span>
-                      <p className="text-lg font-bold tracking-tight md:text-xl">
-                        {selectedService.name} · £{selectedService.price}
-                        <span className="text-muted-foreground">
-                          {" "}
-                          , pick a date & time next.
-                        </span>
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (selectedService) {
-                          router.push(`/${selectedService.slug}`)
-                        }
-                      }}
-                      className="shrink-0 rounded-sm bg-foreground px-7 py-4 text-xs font-medium tracking-[0.18em] whitespace-nowrap text-background uppercase transition-colors hover:bg-accent"
-                    >
-                      Continue →
-                    </button>
-                  </div>
-                ) : (
-                  <div className="animate-fade-up p-7 md:p-10">
-                    <div className="mb-6 flex items-center gap-3">
-                      <span className="relative flex size-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
-                        <span className="relative inline-flex size-2 rounded-full bg-accent" />
-                      </span>
-                      <span className="font-mono text-[10px] tracking-[0.22em] text-accent uppercase">
-                        Holding {selectedService.name} for you
-                      </span>
-                    </div>
-                    <h3 className="mb-2 text-2xl font-bold tracking-tight md:text-3xl">
-                      Choose a date this week.
-                    </h3>
-                    <p className="mb-6 max-w-[44ch] text-sm text-muted-foreground">
-                      Live availability. You&apos;ll confirm with a £
-                      {selectedService.deposit} card deposit on the next step.
                     </p>
-                    <div className="mb-8 grid grid-cols-3 gap-2 md:grid-cols-6">
-                      {[
-                        "Tue 9",
-                        "Wed 10",
-                        "Thu 11",
-                        "Fri 12",
-                        "Sat 13",
-                        "Mon 15",
-                      ].map((d, i) => (
-                        <button
-                          type="button"
-                          key={d}
-                          disabled={i === 2}
-                          className="rounded-sm border border-border bg-background p-3 font-mono text-xs tracking-wider uppercase transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:line-through disabled:opacity-30"
-                        >
-                          {d}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 md:grid-cols-5">
-                      {["10:00", "12:30", "14:30", "16:00", "17:30"].map(
-                        (t) => (
-                          <button
-                            type="button"
-                            key={t}
-                            className="rounded-sm border border-border bg-background p-3 font-mono text-xs transition-colors hover:bg-foreground hover:text-background"
-                          >
-                            {t}
-                          </button>
-                        )
-                      )}
-                    </div>
                   </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedService) {
+                        router.push(`/${selectedService.slug}`)
+                      }
+                    }}
+                    className="shrink-0 rounded-sm bg-foreground px-7 py-4 text-xs font-medium tracking-[0.18em] whitespace-nowrap text-background uppercase transition-colors hover:bg-accent"
+                  >
+                    Continue →
+                  </button>
+                </div>
               </div>
             )}
           </section>

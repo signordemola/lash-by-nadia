@@ -4,6 +4,12 @@ import { stripe } from "@/lib/stripe"
 import { getCancellationOutcome } from "@/lib/policy"
 import { resend } from "@/lib/resend"
 
+const outcomeLabels: Record<string, string> = {
+  refund: "fully refunded to your card",
+  credit: "held as credit toward your next visit",
+  forfeit: "forfeited",
+}
+
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
@@ -46,12 +52,6 @@ export async function POST(
       cancelledAt: new Date(),
     },
   })
-
-  const outcomeLabels = {
-    refund: "fully refunded to your card",
-    credit: "held as credit toward your next visit",
-    forfeit: "forfeited",
-  }
 
   await resend.emails.send({
     from: process.env.EMAIL_FROM!,

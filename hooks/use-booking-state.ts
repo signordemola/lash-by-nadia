@@ -23,10 +23,14 @@ export type BookingState = {
   time: string | null
   clientInfo: ClientInfo | null
   policyAgreed: boolean
+  holdToken: string | null
+  holdExpiresAt: number | null
   setService: (slug: string) => void
   setSlot: (date: string, time: string) => void
+  setHold: (token: string, expiresAt: number) => void
   setClientInfo: (info: ClientInfo) => void
   agreePolicy: () => void
+  releaseHold: () => void
   goToStep: (step: BookingStep) => void
   reset: () => void
 }
@@ -38,6 +42,8 @@ const initialState = {
   time: null as string | null,
   clientInfo: null as ClientInfo | null,
   policyAgreed: false,
+  holdToken: null as string | null,
+  holdExpiresAt: null as number | null,
 }
 
 export const useBookingState = create<BookingState>((set) => ({
@@ -45,8 +51,11 @@ export const useBookingState = create<BookingState>((set) => ({
   setService: (slug) =>
     set({ serviceSlug: slug, step: "slot", date: null, time: null }),
   setSlot: (date, time) => set({ date, time, step: "intake" }),
+  setHold: (token, expiresAt) =>
+    set({ holdToken: token, holdExpiresAt: expiresAt }),
   setClientInfo: (info) => set({ clientInfo: info, step: "policy" }),
   agreePolicy: () => set({ policyAgreed: true, step: "payment" }),
+  releaseHold: () => set({ holdToken: null, holdExpiresAt: null }),
   goToStep: (step) => set({ step }),
   reset: () => set(initialState),
 }))

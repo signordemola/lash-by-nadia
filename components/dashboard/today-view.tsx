@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/shared/status-badge"
@@ -143,34 +144,81 @@ function StatCard({
 }
 
 function AppointmentRow({
-  appointment,
+  appointment: initialApt,
 }: {
   appointment: AppointmentWithRelations
 }) {
-  const isPast = new Date() > appointment.startsAt
+  const [apt, setApt] = useState(initialApt)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const isPast = new Date() > apt.startsAt
+
   const statusVariant =
-    appointment.status === "COMPLETED"
+    apt.status === "COMPLETED"
       ? "default"
-      : appointment.status === "NO_SHOW"
+      : apt.status === "NO_SHOW"
         ? "destructive"
         : "accent"
 
   const statusLabel =
-    appointment.status === "CONFIRMED" && isPast
-      ? "In session"
-      : appointment.status
+    apt.status === "CONFIRMED" && isPast ? "In session" : apt.status
+
+  async function markComplete() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(
+        `/api/dashboard/appointments/${apt.id}/complete`,
+        {
+          method: "POST",
+        }
+      )
+      if (res.ok) {
+        setApt({ ...apt, status: "COMPLETED" })
+      } else {
+        setError("Failed. Try again.")
+        setTimeout(() => setError(null), 3000)
+      }
+    } catch {
+      setError("Failed. Try again.")
+      setTimeout(() => setError(null), 3000)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function markNoShow() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/dashboard/appointments/${apt.id}/no-show`, {
+        method: "POST",
+      })
+      if (res.ok) {
+        setApt({ ...apt, status: "NO_SHOW" })
+      } else {
+        setError("Failed. Try again.")
+        setTimeout(() => setError(null), 3000)
+      }
+    } catch {
+      setError("Failed. Try again.")
+      setTimeout(() => setError(null), 3000)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <Card className="flex items-center justify-between rounded-sm p-4">
       <div className="flex items-center gap-4">
         <span className="font-mono text-sm tracking-tight">
-          {formatTime(appointment.startsAt)}
+          {formatTime(apt.startsAt)}
         </span>
         <div>
-          <p className="text-sm font-medium">{appointment.client.name}</p>
+          <p className="text-sm font-medium">{apt.client.name}</p>
           <p className="font-mono text-[10px] tracking-[0.15em] text-muted-foreground uppercase">
-            {appointment.service.name} · {appointment.service.duration}min ·{" "}
-            {formatCurrency(appointment.depositAmount)}
+            {apt.service.name} · {apt.service.duration}min ·{" "}
+            {formatCurrency(apt.depositAmount)}
           </p>
         </div>
       </div>
@@ -180,14 +228,34 @@ function AppointmentRow({
         >
           {statusLabel}
         </StatusBadge>
-        {appointment.status === "CONFIRMED" && (
-          <Button
-            variant="outline"
-            size="xs"
-            className="font-mono text-[10px] tracking-[0.15em] uppercase"
-          >
-            {isPast ? "Complete" : "Arrived"}
-          </Button>
+        {apt.status === "CONFIRMED" && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="xs"
+              className="font-mono text-[10px] tracking-[0.15em] uppercase"
+              onClick={isPast ? markComplete : undefined}
+              disabled={loading || !isPast}
+            >
+              {loading ? "..." : isPast ? "Complete" : "Arrived"}
+            </Button>
+            {isPast && (
+              <Button
+                variant="destructive"
+                size="xs"
+                className="font-mono text-[10px] tracking-[0.15em] uppercase"
+                onClick={markNoShow}
+                disabled={loading}
+              >
+                No-show
+              </Button>
+            )}
+            {error && (
+              <span className="font-mono text-[10px] text-destructive">
+                {error}
+              </span>
+            )}
+          </div>
         )}
       </div>
     </Card>

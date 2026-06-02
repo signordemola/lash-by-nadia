@@ -66,7 +66,7 @@ export default async function DashboardPage() {
       day: format(d, "EEE"),
       date: d.getDate(),
       today: i === 0,
-      count: weekAppointments.filter((a) => {
+      count: weekAppointments.filter((a: { startsAt: Date }) => {
         const aptDate = format(a.startsAt, "yyyy-MM-dd")
         return aptDate === format(d, "yyyy-MM-dd")
       }).length,

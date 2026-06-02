@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { StatusBadge } from "@/components/shared/status-badge"
+import { formatCurrency } from "@/lib/utils"
 
 type OutcomeInfo = {
   title: string
@@ -82,7 +83,7 @@ export default function CancelPage() {
           <p className="text-sm text-muted-foreground">{info.description}</p>
           {result.amount && (
             <p className="mt-2 font-mono text-sm">
-              £{(result.amount / 100).toFixed(2)}
+              {formatCurrency(result.amount)}
             </p>
           )}
         </Card>

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useBookingState } from "@/hooks/use-booking-state"
 import { useStripeCheckout } from "@/hooks/use-stripe-checkout"
 import { Button } from "@/components/ui/button"
@@ -17,15 +16,14 @@ import {
 import { CreateBookingSchema } from "@/schemas/booking.schema"
 
 function PaymentForm() {
-  const router = useRouter()
   const stripe = useStripe()
   const elements = useElements()
-  const { serviceSlug, date, time } = useBookingState()
-
-  const service = services.find((s) => s.slug === serviceSlug)!
-
+  const { serviceSlug, date, time, goToStep } = useBookingState()
   const [error, setError] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
+
+  const service = services.find((s) => s.slug === serviceSlug)
+  if (!service || !date || !time) return null
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -44,7 +42,7 @@ function PaymentForm() {
     const { error: confirmError } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/confirmation`,
+        return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/${serviceSlug}`,
       },
     })
 
@@ -66,11 +64,28 @@ function PaymentForm() {
         <p className="text-sm text-muted-foreground">
           {service.name} on {date} at {time}
         </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Refundable up to 48 hours before your appointment.
+        </p>
       </div>
 
       <div className="mb-6 rounded-sm border border-border p-4">
         <PaymentElement />
       </div>
+
+      {process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.startsWith(
+        "pk_test"
+      ) && (
+        <div className="mb-6 rounded-sm border border-border bg-muted/30 px-3 py-2">
+          <p className="font-mono text-[10px] text-muted-foreground">
+            <span className="tracking-[0.15em] uppercase">Demo ·</span> Use card{" "}
+            <span className="text-foreground/70 tabular-nums">
+              4242 4242 4242 4242
+            </span>{" "}
+            · any future date · any CVC
+          </p>
+        </div>
+      )}
 
       {error && (
         <p className="mb-4 rounded-sm bg-destructive/10 px-4 py-3 font-mono text-[10px] tracking-[0.15em] text-destructive uppercase">
@@ -87,7 +102,7 @@ function PaymentForm() {
       <div className="flex justify-between border-t border-border pt-6">
         <Button
           variant="link"
-          onClick={() => router.push("/policy")}
+          onClick={() => goToStep("policy")}
           className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase hover:text-foreground"
         >
           Back
@@ -100,32 +115,30 @@ function PaymentForm() {
   )
 }
 
-export default function PaymentPage() {
-  const router = useRouter()
-  const { serviceSlug, date, time, clientInfo, policyAgreed } =
+export function PaymentStep() {
+  const { serviceSlug, date, time, clientInfo, holdToken, goToStep } =
     useBookingState()
 
-  const bookingData = clientInfo
-    ? {
-        serviceSlug,
-        date,
-        time,
-        name: clientInfo.name,
-        email: clientInfo.email,
-        phone: clientInfo.phone,
-        allergies: clientInfo.allergies,
-        referralSource: clientInfo.referralSource,
-        policyAgreed: true as const,
-      }
-    : null
+  const bookingData =
+    clientInfo && holdToken
+      ? {
+          holdToken,
+          serviceSlug,
+          date,
+          time,
+          name: clientInfo.name,
+          email: clientInfo.email,
+          phone: clientInfo.phone,
+          allergies: clientInfo.allergies,
+          referralSource: clientInfo.referralSource,
+          policyAgreed: true as const,
+        }
+      : null
 
   const parsed = bookingData ? CreateBookingSchema.safeParse(bookingData) : null
   const checkout = useStripeCheckout(parsed?.success ? parsed.data : null)
 
-  if (!serviceSlug || !date || !time || !clientInfo || !policyAgreed) {
-    router.replace("/")
-    return null
-  }
+  if (!serviceSlug || !date || !time || !clientInfo || !holdToken) return null
 
   return (
     <div className="mx-auto max-w-xl">
@@ -142,7 +155,7 @@ export default function PaymentPage() {
           <p className="mb-4 text-sm text-destructive">
             Invalid booking data. Please go back and try again.
           </p>
-          <Button onClick={() => router.push("/policy")}>Go back</Button>
+          <Button onClick={() => goToStep("policy")}>Go back</Button>
         </div>
       ) : checkout.data?.clientSecret ? (
         <Elements
@@ -159,7 +172,7 @@ export default function PaymentPage() {
           <p className="mb-4 text-sm text-destructive">
             {checkout.error?.message ?? "Failed to create payment session."}
           </p>
-          <Button onClick={() => router.push("/policy")}>Go back</Button>
+          <Button onClick={() => goToStep("policy")}>Go back</Button>
         </div>
       ) : (
         <div className="space-y-4">
