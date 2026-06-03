@@ -52,10 +52,10 @@ Do not expose secrets in any form.
 
 ## Rule 9 - Quality Gate (Run Only When Requested)
 
-The Quality Gate is **not** run automatically after every task.
+The Quality Gate is **not** run automatically after every task.  
+Running typecheck/lint to verify your own changes during a task is fine — that's verification, not a quality gate.  
 
-- You should **only** run the quality tools when the founder explicitly asks (e.g. “run quality gate”, “check quality”, “run ruff and react-doctor”, etc.).
-- When asked, run the appropriate checks from the correct directory.
+The `/quality` command runs the full quality gate: ruff + pyright + compileall for Python, react-doctor (must score 100/100) for React. Only run these when the founder explicitly asks ("/quality", "run quality gate", "check quality", "run ruff and react-doctor", etc.).
 
 **Python / FastAPI Quality Gate**:
 

@@ -15,8 +15,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 })
   }
 
-  const date = new Date(parsed.data.date)
-  const slots = await getAvailableSlots(parsed.data.serviceSlug, date)
+  const slots = await getAvailableSlots(
+    parsed.data.serviceSlug,
+    parsed.data.date
+  )
 
   return NextResponse.json(slots)
 }

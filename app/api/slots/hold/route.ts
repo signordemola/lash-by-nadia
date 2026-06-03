@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { areIntervalsOverlapping } from "date-fns"
 import { Prisma } from "@/generated/prisma/client"
 import { prisma } from "@/lib/db"
+import { londonDate, londonDateOnly } from "@/lib/time"
 import { nanoid } from "nanoid"
 import { createRateLimiter } from "@/lib/rate-limit"
 
@@ -30,9 +31,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Service not found" }, { status: 404 })
   }
 
-  const [hours, minutes] = time.split(":").map(Number)
-  const startsAt = new Date(dateStr)
-  startsAt.setHours(hours, minutes, 0, 0)
+  const startsAt = londonDate(dateStr, time)
   const endsAt = new Date(startsAt.getTime() + service.duration * 60000)
 
   const minBookable = new Date(Date.now() + MINIMUM_BOOKING_NOTICE * 60000)
@@ -43,8 +42,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const dayStart = new Date(dateStr)
-  dayStart.setHours(0, 0, 0, 0)
+  const dayStart = londonDateOnly(dateStr)
   const dayEnd = new Date(dayStart.getTime() + 86400000)
 
   const [existingHolds, conflictingAppointments] = await Promise.all([
@@ -88,6 +86,10 @@ export async function POST(request: NextRequest) {
   }
 
   const holdToken = nanoid(21)
+
+  await prisma.slotHold.deleteMany({
+    where: { startsAt, expiresAt: { lte: new Date() } },
+  })
 
   try {
     await prisma.slotHold.create({

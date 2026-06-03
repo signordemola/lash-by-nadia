@@ -39,21 +39,26 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: service.deposit,
-    currency: "gbp",
-    metadata: {
-      holdToken,
-      serviceSlug,
-      date: dateStr,
-      time,
-      name: parsed.data.name,
-      email: parsed.data.email,
-      phone: parsed.data.phone,
-      allergies: parsed.data.allergies ?? "",
-      referralSource: parsed.data.referralSource ?? "",
+  const paymentIntent = await stripe.paymentIntents.create(
+    {
+      amount: service.deposit,
+      currency: "gbp",
+      metadata: {
+        holdToken,
+        serviceSlug,
+        date: dateStr,
+        time,
+        name: parsed.data.name,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        allergies: parsed.data.allergies ?? "",
+        referralSource: parsed.data.referralSource ?? "",
+      },
     },
-  })
+    {
+      idempotencyKey: `booking_${holdToken}`,
+    }
+  )
 
   return NextResponse.json({ clientSecret: paymentIntent.client_secret })
 }

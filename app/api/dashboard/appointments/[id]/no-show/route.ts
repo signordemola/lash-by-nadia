@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { headers } from "next/headers"
-import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { canMarkNoShow } from "@/lib/policy"
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) {
+  const token = request.cookies.get("owner-token")
+  if (token?.value !== "valid") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

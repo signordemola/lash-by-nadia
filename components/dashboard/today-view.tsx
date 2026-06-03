@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { formatCurrency, formatTime } from "@/lib/utils"
+import { useMarkComplete, useMarkNoShow } from "@/hooks/use-dashboard"
 import type { Appointment, Client, Service } from "@/generated/prisma/client"
 
 type AppointmentWithRelations = Appointment & {
@@ -13,7 +14,7 @@ type AppointmentWithRelations = Appointment & {
 }
 
 type Props = {
-  user: { name?: string | null; email: string }
+  user?: { name?: string | null; email: string }
   todayAppointments: AppointmentWithRelations[]
   stats: {
     monthBookings: number
@@ -43,7 +44,7 @@ export function DashboardView({
             Today&apos;s view
           </h1>
           <p className="text-sm text-muted-foreground">
-            {user.name ?? user.email}
+            {user?.name ?? user?.email ?? "Studio dashboard"}
           </p>
         </div>
       </div>
@@ -149,8 +150,8 @@ function AppointmentRow({
   appointment: AppointmentWithRelations
 }) {
   const [apt, setApt] = useState(initialApt)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const complete = useMarkComplete()
+  const noShow = useMarkNoShow()
   const isPast = new Date() > apt.startsAt
 
   const statusVariant =
@@ -163,50 +164,20 @@ function AppointmentRow({
   const statusLabel =
     apt.status === "CONFIRMED" && isPast ? "In session" : apt.status
 
-  async function markComplete() {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch(
-        `/api/dashboard/appointments/${apt.id}/complete`,
-        {
-          method: "POST",
-        }
-      )
-      if (res.ok) {
-        setApt({ ...apt, status: "COMPLETED" })
-      } else {
-        setError("Failed. Try again.")
-        setTimeout(() => setError(null), 3000)
-      }
-    } catch {
-      setError("Failed. Try again.")
-      setTimeout(() => setError(null), 3000)
-    } finally {
-      setLoading(false)
-    }
+  function markComplete() {
+    complete.mutate(apt.id, {
+      onSuccess: () => setApt({ ...apt, status: "COMPLETED" }),
+    })
   }
 
-  async function markNoShow() {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch(`/api/dashboard/appointments/${apt.id}/no-show`, {
-        method: "POST",
-      })
-      if (res.ok) {
-        setApt({ ...apt, status: "NO_SHOW" })
-      } else {
-        setError("Failed. Try again.")
-        setTimeout(() => setError(null), 3000)
-      }
-    } catch {
-      setError("Failed. Try again.")
-      setTimeout(() => setError(null), 3000)
-    } finally {
-      setLoading(false)
-    }
+  function markNoShow() {
+    noShow.mutate(apt.id, {
+      onSuccess: () => setApt({ ...apt, status: "NO_SHOW" }),
+    })
   }
+
+  const isLoading = complete.isPending || noShow.isPending
+  const mutationError = complete.error || noShow.error
 
   return (
     <Card className="flex items-center justify-between rounded-sm p-4">
@@ -235,9 +206,9 @@ function AppointmentRow({
               size="xs"
               className="font-mono text-[10px] tracking-[0.15em] uppercase"
               onClick={isPast ? markComplete : undefined}
-              disabled={loading || !isPast}
+              disabled={isLoading || !isPast}
             >
-              {loading ? "..." : isPast ? "Complete" : "Arrived"}
+              {isLoading ? "..." : isPast ? "Complete" : "Arrived"}
             </Button>
             {isPast && (
               <Button
@@ -245,14 +216,14 @@ function AppointmentRow({
                 size="xs"
                 className="font-mono text-[10px] tracking-[0.15em] uppercase"
                 onClick={markNoShow}
-                disabled={loading}
+                disabled={isLoading}
               >
                 No-show
               </Button>
             )}
-            {error && (
+            {mutationError && (
               <span className="font-mono text-[10px] text-destructive">
-                {error}
+                {mutationError.message}
               </span>
             )}
           </div>

@@ -14,7 +14,7 @@ export function BookingLanding() {
   const [scrollY, setScrollY] = useState(0)
   const router = useRouter()
 
-  const lenis = useLenis(({ scroll }) => setScrollY(scroll))
+  const lenis = useLenis(({ scroll }) => setScrollY(scroll), [])
 
   const selectedService = services.find((s) => s.slug === selected)
 
@@ -362,23 +362,13 @@ export function BookingLanding() {
                   WhatsApp
                 </a>
               </div>
-              <Link
-                href="/login"
-                className="mt-10 inline-block font-mono text-[10px] tracking-[0.2em] uppercase opacity-40 transition-opacity hover:opacity-100"
-              >
-                Owner login
-              </Link>
             </div>
           </div>
           <div className="mx-auto mt-14 flex max-w-7xl flex-col gap-3 border-t border-background/10 pt-6 font-mono text-[10px] tracking-[0.2em] uppercase opacity-40 md:flex-row md:justify-between">
             <span>© 2026 Lash by Nadia · Made in London</span>
             <span>
               <Link href="/portal" className="underline hover:opacity-100">
-                Client portal
-              </Link>
-              {" · "}
-              <Link href="/dashboard" className="underline hover:opacity-100">
-                Owner dashboard
+                Manage booking
               </Link>
             </span>
           </div>

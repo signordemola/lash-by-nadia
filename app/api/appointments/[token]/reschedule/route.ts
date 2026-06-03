@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { isRescheduleAllowed } from "@/lib/policy"
 import { getAvailableSlots } from "@/lib/availability"
-import { formatDate, formatTime } from "@/lib/utils"
+import { formatCurrency, formatDate, formatTime } from "@/lib/utils"
+import { generateICS } from "@/lib/ics"
+import { confirmationHtml } from "@/emails/confirmation"
 import { resend } from "@/lib/resend"
 
 export async function POST(
@@ -33,8 +35,7 @@ export async function POST(
     )
   }
 
-  const date = new Date(dateStr)
-  const slots = await getAvailableSlots(appointment.service.slug, date)
+  const slots = await getAvailableSlots(appointment.service.slug, dateStr)
   const slot = slots.find((s) => s.time === time)
 
   if (!slot) {
@@ -52,11 +53,35 @@ export async function POST(
     },
   })
 
+  const icsContent = generateICS({
+    startsAt: slot.startsAt,
+    endsAt: slot.endsAt,
+    serviceName: appointment.service.name,
+    clientName: appointment.client.name,
+    clientEmail: appointment.client.email,
+    manageUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${token}`,
+  })
+
   await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to: [appointment.client.email],
     subject: `Appointment rescheduled — ${appointment.service.name}`,
-    text: `Hi ${appointment.client.name},\n\nYour ${appointment.service.name} appointment has been rescheduled.\n\nNew date: ${formatDate(slot.startsAt)}\nNew time: ${formatTime(slot.startsAt)}\n\nManage: ${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${token}`,
+    html: confirmationHtml({
+      clientName: appointment.client.name,
+      service: appointment.service.name,
+      date: formatDate(slot.startsAt),
+      time: formatTime(slot.startsAt),
+      deposit: formatCurrency(appointment.depositAmount),
+      manageUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${token}`,
+    }),
+    attachments: icsContent
+      ? [
+          {
+            filename: "appointment.ics",
+            content: icsContent,
+          },
+        ]
+      : undefined,
   })
 
   return NextResponse.json({

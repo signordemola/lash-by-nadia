@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { signIn } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
@@ -20,13 +19,15 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
-    const { error } = await signIn.email({
-      email,
-      password,
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
     })
 
-    if (error) {
-      setError(error.message ?? "Invalid credentials")
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error ?? "Invalid credentials")
       setLoading(false)
       return
     }

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createHash } from "crypto"
 import Stripe from "stripe"
 import { Prisma } from "@/generated/prisma/client"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/db"
 import { generateManageToken } from "@/lib/tokens"
 import { formatCurrency } from "@/lib/utils"
+import { generateICS } from "@/lib/ics"
+import { londonDate } from "@/lib/time"
+import { confirmationHtml } from "@/emails/confirmation"
 import { resend } from "@/lib/resend"
 
 export async function POST(request: NextRequest) {
@@ -61,10 +65,19 @@ export async function POST(request: NextRequest) {
         },
       })
 
-  const [hours, minutes] = metadata.time.split(":").map(Number)
-  const startsAt = new Date(metadata.date)
-  startsAt.setHours(hours, minutes, 0, 0)
+  const startsAt = londonDate(metadata.date, metadata.time)
   const endsAt = new Date(startsAt.getTime() + service.duration * 60000)
+
+  const idempotencyKey = createHash("sha256")
+    .update(`${startsAt.toISOString()}-${metadata.email}`)
+    .digest("hex")
+
+  const existing = await prisma.appointment.findUnique({
+    where: { idempotencyKey },
+  })
+  if (existing) {
+    return NextResponse.json({ received: true })
+  }
 
   const manageToken = generateManageToken()
 
@@ -78,6 +91,7 @@ export async function POST(request: NextRequest) {
         depositAmount: service.deposit,
         depositStatus: "HELD",
         stripePaymentIntentId: paymentIntent.id,
+        idempotencyKey,
         manageToken,
         policyAgreedAt: new Date(),
       },
@@ -94,11 +108,35 @@ export async function POST(request: NextRequest) {
 
   await prisma.slotHold.deleteMany({ where: { startsAt } })
 
+  const icsContent = generateICS({
+    startsAt,
+    endsAt,
+    serviceName: service.name,
+    clientName: metadata.name,
+    clientEmail: metadata.email,
+    manageUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${manageToken}`,
+  })
+
   await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to: [metadata.email],
     subject: `Booking confirmed — ${service.name}`,
-    text: `Hi ${metadata.name},\n\nYour ${service.name} appointment is confirmed for ${metadata.date} at ${metadata.time}.\n\nManage your booking: ${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${manageToken}\n\nDeposit paid: ${formatCurrency(service.deposit)}`,
+    html: confirmationHtml({
+      clientName: metadata.name,
+      service: service.name,
+      date: metadata.date,
+      time: metadata.time,
+      deposit: formatCurrency(service.deposit),
+      manageUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${manageToken}`,
+    }),
+    attachments: icsContent
+      ? [
+          {
+            filename: "appointment.ics",
+            content: icsContent,
+          },
+        ]
+      : undefined,
   })
 
   return NextResponse.json({ received: true })

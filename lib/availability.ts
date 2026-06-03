@@ -6,10 +6,9 @@ import {
   startOfDay,
   startOfMonth,
   endOfMonth,
-  setHours,
-  setMinutes,
 } from "date-fns"
 import { prisma } from "@/lib/db"
+import { londonDateOnly } from "@/lib/time"
 import type { SlotOption } from "@/types/booking"
 
 const BUFFER_MINUTES = 15
@@ -36,7 +35,7 @@ interface WeeklyAvail {
 }
 
 function hasAvailableSlot(
-  date: Date,
+  dateStr: string,
   serviceDuration: number,
   availability: WeeklyAvail,
   appointments: Interval[],
@@ -46,6 +45,7 @@ function hasAvailableSlot(
   const endMinutes = timeToMinutes(availability.endTime)
   const now = new Date()
   const minBookable = addMinutes(now, MINIMUM_BOOKING_NOTICE)
+  const base = londonDateOnly(dateStr)
 
   const blocked = [
     ...appointments.map((a) => ({
@@ -63,10 +63,7 @@ function hasAvailableSlot(
     mins + serviceDuration <= endMinutes;
     mins += BUFFER_MINUTES
   ) {
-    const slotStart = setMinutes(
-      setHours(startOfDay(date), Math.floor(mins / 60)),
-      mins % 60
-    )
+    const slotStart = addMinutes(base, mins)
     const slotEnd = addMinutes(slotStart, serviceDuration)
 
     if (isBefore(slotStart, minBookable)) continue
@@ -152,7 +149,7 @@ export async function getAvailableDates(
       avail &&
       !blockedSet.has(key) &&
       hasAvailableSlot(
-        d,
+        key,
         service.duration,
         avail,
         apptsByDate.get(key) ?? [],
@@ -170,8 +167,9 @@ export async function getAvailableDates(
 
 export async function getAvailableSlots(
   serviceSlug: string,
-  date: Date
+  dateStr: string
 ): Promise<SlotOption[]> {
+  const date = londonDateOnly(dateStr)
   const dayOfWeek = getDay(date)
 
   const [service, availability, existingAppointments, heldSlots] =
@@ -206,6 +204,7 @@ export async function getAvailableSlots(
   const endMinutes = timeToMinutes(availability.endTime)
   const now = new Date()
   const minBookable = addMinutes(now, MINIMUM_BOOKING_NOTICE)
+  const base = londonDateOnly(dateStr)
 
   const blockedIntervals: Interval[] = [
     ...existingAppointments.map((a: { startsAt: Date; endsAt: Date }) => ({
@@ -225,10 +224,7 @@ export async function getAvailableSlots(
     mins + service.duration <= endMinutes;
     mins += BUFFER_MINUTES
   ) {
-    const slotStart = setMinutes(
-      setHours(startOfDay(date), Math.floor(mins / 60)),
-      mins % 60
-    )
+    const slotStart = addMinutes(base, mins)
     const slotEnd = addMinutes(slotStart, service.duration)
 
     if (isBefore(slotStart, minBookable)) continue

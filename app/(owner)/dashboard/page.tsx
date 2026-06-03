@@ -1,19 +1,10 @@
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { startOfDay, endOfDay, format } from "date-fns"
 import { DashboardView } from "@/components/dashboard/today-view"
 
+export const dynamic = "force-dynamic"
+
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
-
-  if (!session) {
-    redirect("/login")
-  }
-
   const today = new Date()
 
   const todayAppointments = await prisma.appointment.findMany({
@@ -75,7 +66,6 @@ export default async function DashboardPage() {
 
   return (
     <DashboardView
-      user={session.user}
       todayAppointments={todayAppointments}
       stats={{
         monthBookings: monthStats._count,

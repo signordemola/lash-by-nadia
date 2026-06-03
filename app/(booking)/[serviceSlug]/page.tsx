@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, useEffect } from "react"
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams, useSearchParams, notFound } from "next/navigation"
 import { useBookingState } from "@/hooks/use-booking-state"
 import { services } from "@/lib/studio-data"
 import { SlotPickerStep } from "@/components/booking/step-slot-picker"
@@ -24,11 +24,7 @@ function Wizard() {
   const service = services.find((s) => s.slug === params.serviceSlug)
 
   if (!service) {
-    return (
-      <div className="mx-auto max-w-2xl text-center">
-        <p className="text-muted-foreground">Service not found.</p>
-      </div>
-    )
+    notFound()
   }
 
   if (paymentIntent) {

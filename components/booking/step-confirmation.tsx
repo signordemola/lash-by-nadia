@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useBookingState } from "@/hooks/use-booking-state"
@@ -19,12 +18,6 @@ export function ConfirmationStep({
   const service = services.find((s) => s.slug === serviceSlug)
   const paymentIntent = searchParams.get("payment_intent")
 
-  useEffect(() => {
-    if (paymentIntent) {
-      reset()
-    }
-  }, [paymentIntent, reset])
-
   if (
     showFallback &&
     !paymentIntent &&
@@ -42,7 +35,7 @@ export function ConfirmationStep({
           Your booking is being processed. You&apos;ll receive a confirmation
           email shortly.
         </p>
-        <Link href="/">
+        <Link href="/" onClick={reset}>
           <Button>Book another appointment</Button>
         </Link>
       </div>
@@ -61,7 +54,7 @@ export function ConfirmationStep({
         <p className="mb-8 text-sm text-muted-foreground">
           Your booking has been confirmed.
         </p>
-        <Link href="/">
+        <Link href="/" onClick={reset}>
           <Button>Book another appointment</Button>
         </Link>
       </div>
@@ -126,7 +119,7 @@ export function ConfirmationStep({
       </div>
 
       <div className="mt-10 text-center">
-        <Link href="/">
+        <Link href="/" onClick={reset}>
           <Button>Return home</Button>
         </Link>
       </div>

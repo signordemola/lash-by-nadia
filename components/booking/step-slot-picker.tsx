@@ -150,10 +150,16 @@ export function SlotPickerStep() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-3 gap-2 md:grid-cols-4">
+              <div
+                className="grid grid-cols-3 gap-2 md:grid-cols-4"
+                role="listbox"
+                aria-label="Available time slots"
+              >
                 {slots.map((slot) => (
                   <Button
                     key={slot.time}
+                    role="option"
+                    aria-label={`Select ${slot.time} time slot`}
                     variant="outline"
                     onClick={() => handleSlotClick(slot)}
                     disabled={holding}
@@ -172,7 +178,11 @@ export function SlotPickerStep() {
           )}
 
           {holdError && (
-            <p className="mt-4 rounded-sm bg-destructive/10 px-4 py-3 font-mono text-[10px] tracking-[0.15em] text-destructive uppercase">
+            <p
+              className="mt-4 rounded-sm bg-destructive/10 px-4 py-3 font-mono text-[10px] tracking-[0.15em] text-destructive uppercase"
+              role="alert"
+              aria-live="assertive"
+            >
               {holdError}
             </p>
           )}

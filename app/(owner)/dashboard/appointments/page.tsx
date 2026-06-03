@@ -1,17 +1,27 @@
-import { Card } from "@/components/ui/card"
+import { prisma } from "@/lib/db"
+import { DataTable } from "@/components/ui/data-table"
+import { columns, type AppointmentRow } from "./columns"
 
-export default function AppointmentsPage() {
+export const dynamic = "force-dynamic"
+
+export default async function AppointmentsPage() {
+  const appointments = await prisma.appointment.findMany({
+    include: { client: true, service: true },
+    orderBy: { startsAt: "desc" },
+    take: 100,
+  })
+
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-5xl">
       <h1 className="mb-2 text-2xl font-bold tracking-tight">Appointments</h1>
       <p className="mb-8 text-sm text-muted-foreground">
-        View and manage all upcoming and past appointments.
+        {appointments.length} appointment{appointments.length !== 1 ? "s" : ""}
       </p>
-      <Card className="flex min-h-[300px] items-center justify-center rounded-sm p-12">
-        <p className="text-sm text-muted-foreground">
-          Appointment list coming soon.
-        </p>
-      </Card>
+      <DataTable
+        columns={columns}
+        data={appointments as AppointmentRow[]}
+        searchKey="client.name"
+      />
     </div>
   )
 }

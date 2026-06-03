@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { signOut } from "@/lib/auth-client"
 import { LashMark } from "@/components/shared/lash-mark"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -17,6 +16,11 @@ const navItems = [
 export function OwnerSidebar() {
   const pathname = usePathname()
   const router = useRouter()
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" })
+    router.push("/login")
+  }
 
   return (
     <aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-sidebar text-sidebar-foreground md:flex">
@@ -54,11 +58,7 @@ export function OwnerSidebar() {
         <Button
           variant="destructive"
           className="w-full justify-start font-mono text-[10px] tracking-[0.2em] text-sidebar-foreground/50 uppercase hover:text-sidebar-foreground"
-          onClick={() =>
-            signOut({
-              fetchOptions: { onSuccess: () => router.push("/login") },
-            })
-          }
+          onClick={handleLogout}
         >
           Sign out
         </Button>

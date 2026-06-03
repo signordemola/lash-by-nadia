@@ -18,8 +18,8 @@ model Service {
   isActive     Boolean       @default(true)
   displayOrder Int           @default(0)
   appointments Appointment[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime @db.Timestamptz(3) @default(now())
+  updatedAt    DateTime @db.Timestamptz(3) @updatedAt
 }
 
 model Client {
@@ -32,8 +32,8 @@ model Client {
   noShowCount    Int           @default(0)
   isFlagged      Boolean       @default(false)
   appointments   Appointment[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt      DateTime @db.Timestamptz(3) @default(now())
+  updatedAt      DateTime @db.Timestamptz(3) @updatedAt
 }
 
 model Appointment {
@@ -42,22 +42,23 @@ model Appointment {
   clientId              String
   service               Service           @relation(fields: [serviceId], references: [id])
   serviceId             String
-  startsAt              DateTime
-  endsAt                DateTime
+  startsAt              DateTime @db.Timestamptz(3)
+  endsAt                DateTime @db.Timestamptz(3)
   status                AppointmentStatus @default(CONFIRMED)
   depositAmount         Int
   depositStatus         DepositStatus     @default(HELD)
   stripePaymentIntentId String?           @unique
+  idempotencyKey        String?           @unique
   manageToken           String            @unique
-  policyAgreedAt        DateTime?
+  policyAgreedAt        DateTime? @db.Timestamptz(3)
   cancellationReason    String?
-  cancelledAt           DateTime?
-  noShowMarkedAt        DateTime?
-  reminder24hSentAt     DateTime?
-  reminder2hSentAt      DateTime?
+  cancelledAt           DateTime? @db.Timestamptz(3)
+  noShowMarkedAt        DateTime? @db.Timestamptz(3)
+  reminder24hSentAt     DateTime? @db.Timestamptz(3)
+  reminder2hSentAt      DateTime? @db.Timestamptz(3)
   ownerNotes            String?
-  createdAt             DateTime          @default(now())
-  updatedAt             DateTime          @updatedAt
+  createdAt             DateTime @db.Timestamptz(3) @default(now())
+  updatedAt             DateTime @db.Timestamptz(3) @updatedAt
 }
 
 enum AppointmentStatus {
@@ -78,7 +79,7 @@ model BlockedDate {
   id        String   @id @default(cuid())
   date      DateTime @db.Date
   reason    String?
-  createdAt DateTime @default(now())
+  createdAt DateTime @db.Timestamptz(3) @default(now())
 }
 
 model WeeklyAvailability {
@@ -91,78 +92,15 @@ model WeeklyAvailability {
 
 model OwnerSession {
   id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+  createdAt DateTime @db.Timestamptz(3) @default(now())
 }
 
 model SlotHold {
   id        String   @id @default(cuid())
-  startsAt  DateTime
-  endsAt    DateTime
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  startsAt  DateTime @db.Timestamptz(3)
+  endsAt    DateTime @db.Timestamptz(3)
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @db.Timestamptz(3) @default(now())
 
   @@unique([startsAt])
-}
-
-model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-
-  @@unique([email])
-  @@map("user")
-}
-
-model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([token])
-  @@index([userId])
-  @@map("session")
-}
-
-model Account {
-  id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  password              String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  @@index([userId])
-  @@map("account")
-}
-
-model Verification {
-  id         String   @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@index([identifier])
-  @@map("verification")
 }

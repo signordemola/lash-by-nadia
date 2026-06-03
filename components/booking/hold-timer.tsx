@@ -11,21 +11,20 @@ export function HoldTimer() {
   const [remaining, setRemaining] = useState(0)
 
   useEffect(() => {
-    if (!holdExpiresAt) return
+    if (!holdExpiresAt || !holdToken) return
     const tick = () => {
       const r = Math.max(0, Math.ceil((holdExpiresAt - Date.now()) / 1000))
       setRemaining(r)
+      if (r === 0) {
+        clearInterval(id)
+        router.push(`/${serviceSlug}?expired=1`)
+        reset()
+      }
     }
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
-  }, [holdExpiresAt])
-
-  useEffect(() => {
-    if (remaining > 0 || !holdExpiresAt) return
-    router.push(`/${serviceSlug}?expired=1`)
-    reset()
-  }, [remaining, holdExpiresAt, reset, router, serviceSlug])
+  }, [holdExpiresAt, holdToken, serviceSlug, router, reset])
 
   if (!holdToken || !holdExpiresAt) return null
 
@@ -36,6 +35,9 @@ export function HoldTimer() {
 
   return (
     <div
+      role="status"
+      aria-live="polite"
+      aria-label={`Slot held, ${mins} minutes ${secs} seconds remaining`}
       className={cn(
         "border-b border-border px-6 py-2 text-center font-mono text-[10px] tracking-[0.15em] uppercase",
         critical && "animate-pulse bg-destructive/15 text-destructive",

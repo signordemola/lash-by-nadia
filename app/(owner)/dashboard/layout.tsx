@@ -1,6 +1,3 @@
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
 import Link from "next/link"
 import { LashMark } from "@/components/shared/lash-mark"
 import { Button } from "@/components/ui/button"
@@ -12,19 +9,11 @@ const navItems = [
   { href: "/dashboard/clients", label: "Clients" },
 ]
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
-
-  if (!session) {
-    redirect("/login")
-  }
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
@@ -35,12 +24,15 @@ export default async function DashboardLayout({
               Lash by Nadia
             </span>
           </Link>
-          <Link
-            href="/"
-            className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase transition-colors hover:text-foreground"
-          >
-            View site
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase transition-colors hover:text-foreground"
+            >
+              View site
+            </Link>
+            <LogoutButton />
+          </div>
         </div>
         <nav className="mx-auto max-w-screen-xl px-6 pb-3">
           <div className="flex gap-1">
@@ -60,5 +52,20 @@ export default async function DashboardLayout({
       </header>
       <main className="mx-auto max-w-screen-xl px-6 py-12">{children}</main>
     </div>
+  )
+}
+
+function LogoutButton() {
+  return (
+    <form action="/api/auth/logout" method="POST">
+      <Button
+        type="submit"
+        variant="ghost"
+        size="xs"
+        className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase hover:text-foreground"
+      >
+        Logout
+      </Button>
+    </form>
   )
 }

@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { stripe } from "@/lib/stripe"
 import { getCancellationOutcome } from "@/lib/policy"
+import { generateICS } from "@/lib/ics"
+import { formatCurrency } from "@/lib/utils"
+import { cancellationHtml } from "@/emails/cancellation"
 import { resend } from "@/lib/resend"
-
-const outcomeLabels: Record<string, string> = {
-  refund: "fully refunded to your card",
-  credit: "held as credit toward your next visit",
-  forfeit: "forfeited",
-}
 
 export async function POST(
   _request: NextRequest,
@@ -53,11 +50,38 @@ export async function POST(
     },
   })
 
+  const icsContent = generateICS({
+    startsAt: appointment.startsAt,
+    endsAt: appointment.endsAt,
+    serviceName: appointment.service.name,
+    clientName: appointment.client.name,
+    clientEmail: appointment.client.email,
+    status: "CANCELLED",
+  })
+
   await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to: [appointment.client.email],
     subject: `Appointment cancelled — ${appointment.service.name}`,
-    text: `Hi ${appointment.client.name},\n\nYour ${appointment.service.name} appointment has been cancelled.\n\nYour deposit has been ${outcomeLabels[outcome]}.\n\nBook again: ${process.env.NEXT_PUBLIC_BASE_URL}`,
+    html: cancellationHtml({
+      clientName: appointment.client.name,
+      service: appointment.service.name,
+      date: new Date(appointment.startsAt).toISOString().split("T")[0],
+      time: new Date(appointment.startsAt)
+        .toISOString()
+        .split("T")[1]
+        .slice(0, 5),
+      deposit: formatCurrency(appointment.depositAmount),
+      outcome,
+    }),
+    attachments: icsContent
+      ? [
+          {
+            filename: "appointment.ics",
+            content: icsContent,
+          },
+        ]
+      : undefined,
   })
 
   return NextResponse.json({

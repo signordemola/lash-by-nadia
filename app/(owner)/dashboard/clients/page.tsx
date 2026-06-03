@@ -1,17 +1,26 @@
-import { Card } from "@/components/ui/card"
+import { prisma } from "@/lib/db"
+import { DataTable } from "@/components/ui/data-table"
+import { columns, type ClientRow } from "./columns"
 
-export default function ClientsPage() {
+export const dynamic = "force-dynamic"
+
+export default async function ClientsPage() {
+  const clients = await prisma.client.findMany({
+    include: { _count: { select: { appointments: true } } },
+    orderBy: { name: "asc" },
+  })
+
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-5xl">
       <h1 className="mb-2 text-2xl font-bold tracking-tight">Clients</h1>
       <p className="mb-8 text-sm text-muted-foreground">
-        Search client history, notes, and contact details.
+        {clients.length} client{clients.length !== 1 ? "s" : ""}
       </p>
-      <Card className="flex min-h-[300px] items-center justify-center rounded-sm p-12">
-        <p className="text-sm text-muted-foreground">
-          Client directory coming soon.
-        </p>
-      </Card>
+      <DataTable
+        columns={columns}
+        data={clients as ClientRow[]}
+        searchKey="name"
+      />
     </div>
   )
 }
