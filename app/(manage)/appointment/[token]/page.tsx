@@ -77,7 +77,9 @@ export default async function ManagePage({
       </h1>
       <p className="mb-10 text-sm text-muted-foreground">
         {appointment.status === "CONFIRMED"
-          ? `Reschedule available up to 48 hours before. Cancel anytime — your deposit may be affected.`
+          ? appointment.depositAmount === 0
+            ? `Reschedule available up to 48 hours before. Cancel anytime.`
+            : `Reschedule available up to 48 hours before. Cancel anytime — your deposit may be affected.`
           : `This appointment is complete.`}
       </p>
 
@@ -118,7 +120,9 @@ export default async function ManagePage({
               Deposit
             </dt>
             <dd className="text-sm font-medium">
-              {formatCurrency(appointment.depositAmount)} (paid)
+              {appointment.depositAmount > 0
+                ? `${formatCurrency(appointment.depositAmount)} (paid)`
+                : "None"}
             </dd>
           </div>
         </dl>
@@ -150,9 +154,12 @@ export default async function ManagePage({
               className="w-full justify-between text-destructive hover:text-destructive"
             >
               Cancel appointment
-              <span className="font-mono text-[10px] text-muted-foreground">
-                Deposit {outcomeLabel[outcome]}
-              </span>
+              {appointment.depositAmount > 0 && (
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {" "}
+                  · Deposit {outcomeLabel[outcome]}
+                </span>
+              )}
             </Button>
           </Link>
         </div>

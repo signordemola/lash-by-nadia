@@ -118,12 +118,14 @@ export function ConfirmationStep({
             </dt>
             <dd className="text-sm font-medium">{time}</dd>
           </div>
-          <div className="flex justify-between">
-            <dt className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
-              Deposit
-            </dt>
-            <dd className="text-sm font-medium">£{service.deposit}</dd>
-          </div>
+          {service.deposit > 0 && (
+            <div className="flex justify-between">
+              <dt className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
+                Deposit
+              </dt>
+              <dd className="text-sm font-medium">£{service.deposit}</dd>
+            </div>
+          )}
         </dl>
       </div>
 

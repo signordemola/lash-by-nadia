@@ -29,7 +29,7 @@ export function confirmationHtml(params: {
     </tr>
     <tr>
       <td style="padding: 12px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: #999;">Deposit</td>
-      <td style="padding: 12px 4px; text-align: right; font-size: 14px; font-weight: 600;">${params.deposit}</td>
+      <td style="padding: 12px 4px; text-align: right; font-size: 14px; font-weight: 600;">${params.deposit === "£0.00" ? "None required" : params.deposit}</td>
     </tr>
   </table>
 

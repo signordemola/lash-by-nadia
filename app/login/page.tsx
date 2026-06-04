@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
-import { LashMark } from "@/components/shared/lash-mark"
+import { Logo } from "@/components/shared/logo"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -39,11 +39,8 @@ export default function LoginPage() {
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="hidden items-center justify-center bg-foreground p-12 lg:flex">
         <div className="max-w-xs text-background">
-          <div className="mb-8 flex items-center gap-3">
-            <LashMark size={32} className="text-background" />
-            <span className="text-base font-bold tracking-tight uppercase">
-              Lash by Nadia
-            </span>
+          <div className="mb-8">
+            <Logo color="#fff" size={32} asLink={false} />
           </div>
           <p className="text-2xl leading-tight font-bold tracking-tight">
             Solo lash artistry in East London.
@@ -58,11 +55,8 @@ export default function LoginPage() {
 
       <div className="flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
-          <div className="mb-10 flex items-center gap-3 lg:hidden">
-            <LashMark size={28} />
-            <span className="text-sm font-bold tracking-tight uppercase">
-              Lash by Nadia
-            </span>
+          <div className="mb-10 lg:hidden">
+            <Logo size={28} asLink={false} />
           </div>
 
           <h1 className="mb-1 text-3xl font-bold tracking-tight">

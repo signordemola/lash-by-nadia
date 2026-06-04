@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -32,6 +32,11 @@ const outcomeInfo: Record<string, OutcomeInfo> = {
       "Your deposit will be forfeited, per the policy you agreed to when booking.",
     variant: "destructive",
   },
+  none: {
+    title: "This was a free booking.",
+    description: "No deposit was taken — nothing to refund.",
+    variant: "accent",
+  },
 }
 
 export default function CancelPage() {
@@ -42,6 +47,14 @@ export default function CancelPage() {
     amount?: number
   } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [depositAmount, setDepositAmount] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch(`/api/appointments/${token}`)
+      .then((r) => r.json())
+      .then((data) => setDepositAmount(data.depositAmount ?? null))
+      .catch(() => {})
+  }, [token])
 
   async function handleCancel() {
     setSubmitting(true)
@@ -69,7 +82,8 @@ export default function CancelPage() {
   }
 
   if (result) {
-    const info = outcomeInfo[result.outcome] ?? outcomeInfo.forfeit
+    const outcome = result.amount === 0 ? "none" : result.outcome
+    const info = outcomeInfo[outcome] ?? outcomeInfo.forfeit
     return (
       <div className="mx-auto max-w-xl text-center">
         <StatusBadge variant="default" className="mb-6">
@@ -109,12 +123,20 @@ export default function CancelPage() {
           Cancellation policy
         </h2>
         <dl className="space-y-1 divide-y divide-border">
-          {[
-            { w: "48h+", o: "Full deposit refunded" },
-            { w: "24–48h", o: "Deposit held as credit" },
-            { w: "<24h", o: "Deposit forfeited" },
-            { w: "No-show", o: "Deposit forfeited, flagged" },
-          ].map((p) => (
+          {(depositAmount === 0
+            ? [
+                { w: "48h+", o: "Free to cancel" },
+                { w: "24–48h", o: "Free to cancel" },
+                { w: "<24h", o: "Account flagged" },
+                { w: "No-show", o: "Account flagged" },
+              ]
+            : [
+                { w: "48h+", o: "Full deposit refunded" },
+                { w: "24–48h", o: "Deposit held as credit" },
+                { w: "<24h", o: "Deposit forfeited" },
+                { w: "No-show", o: "Deposit forfeited, flagged" },
+              ]
+          ).map((p) => (
             <div key={p.w} className="flex justify-between py-2 text-sm">
               <dt className="font-mono text-muted-foreground">{p.w}</dt>
               <dd>{p.o}</dd>

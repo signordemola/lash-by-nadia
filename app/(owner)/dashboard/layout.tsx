@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { LashMark } from "@/components/shared/lash-mark"
+import { Logo } from "@/components/shared/logo"
 import { Button } from "@/components/ui/button"
 
 const navItems = [
@@ -18,11 +18,8 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-screen-xl items-center justify-between p-6">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <LashMark size={22} />
-            <span className="text-sm font-bold tracking-tight uppercase">
-              Lash by Nadia
-            </span>
+          <Link href="/dashboard">
+            <Logo size={22} asLink={false} />
           </Link>
           <div className="flex items-center gap-4">
             <Link

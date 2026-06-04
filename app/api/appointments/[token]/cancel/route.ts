@@ -70,6 +70,7 @@ export async function POST(
         date: formatDateISO(appointment.startsAt),
         time: formatTimeISO(appointment.startsAt),
         deposit: formatCurrency(appointment.depositAmount),
+        depositAmount: appointment.depositAmount,
         outcome,
       }),
       attachments: icsContent

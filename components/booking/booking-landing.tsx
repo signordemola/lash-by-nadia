@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useLenis } from "lenis/react"
 import { services, policy } from "@/lib/studio-data"
-import { LashMark } from "@/components/shared/lash-mark"
+import { Logo } from "@/components/shared/logo"
 import { SmoothScroll } from "@/components/shared/smooth-scroll"
 
 export function BookingLanding() {
@@ -42,17 +42,7 @@ export function BookingLanding() {
 
           <nav className="relative z-10">
             <div className="mx-auto flex max-w-7xl animate-fade-up items-center justify-between p-6">
-              <Link href="/" className="group flex items-center gap-3">
-                <LashMark size={26} className="text-background" />
-                <span className="block">
-                  <span className="mb-1 block font-mono text-[9px] leading-none tracking-[0.3em] uppercase opacity-60">
-                    Bethnal Green · E2
-                  </span>
-                  <span className="block text-[15px] leading-none font-bold tracking-tight uppercase">
-                    Lash by Nadia
-                  </span>
-                </span>
-              </Link>
+              <Logo className="text-background" color="#fff" size={28} />
               <div className="hidden items-center gap-8 text-background/90 md:flex">
                 <a
                   href="#services"
@@ -321,11 +311,8 @@ export function BookingLanding() {
         <footer className="mt-12 bg-foreground px-6 py-16 text-background">
           <div className="mx-auto grid max-w-7xl items-start gap-10 md:grid-cols-12">
             <div className="md:col-span-4">
-              <div className="mb-5 flex items-center gap-3">
-                <LashMark size={28} className="text-background" />
-                <span className="text-base font-bold tracking-tight uppercase">
-                  Lash by Nadia
-                </span>
+              <div className="mb-5">
+                <Logo color="#fff" asLink={false} />
               </div>
               <p className="max-w-[28ch] text-sm leading-relaxed opacity-80">
                 Cambridge Heath Road, Bethnal Green, London E2.

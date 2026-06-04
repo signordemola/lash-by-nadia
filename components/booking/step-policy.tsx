@@ -37,7 +37,10 @@ export function PolicyStep() {
           {service.name} · £{service.price}
         </p>
         <p className="text-sm text-muted-foreground">
-          {date} at {time} · Deposit: £{service.deposit}
+          {date} at {time}
+          {service.deposit === 0
+            ? " · No deposit required"
+            : ` · Deposit: £${service.deposit}`}
         </p>
       </div>
 
@@ -46,19 +49,35 @@ export function PolicyStep() {
           Cancellation policy
         </h2>
         <dl className="divide-y divide-border border-y border-border">
-          {policy.map((p) => (
-            <div
-              key={p.window}
-              className="grid grid-cols-12 items-baseline gap-4 py-4"
-            >
-              <dt className="col-span-12 font-mono text-sm tracking-tight sm:col-span-5">
-                {p.window}
-              </dt>
-              <dd className="col-span-12 text-sm text-muted-foreground sm:col-span-7">
-                {p.outcome}
-              </dd>
-            </div>
-          ))}
+          {policy.map((p) => {
+            const outcome =
+              service.deposit === 0
+                ? p.outcome
+                    .replace("Full deposit refunded", "Free to cancel")
+                    .replace(
+                      "Deposit held as credit for next visit",
+                      "Free to cancel"
+                    )
+                    .replace("Deposit forfeited", "Account flagged")
+                    .replace(
+                      "Deposit forfeited, account flagged",
+                      "Account flagged"
+                    )
+                : p.outcome
+            return (
+              <div
+                key={p.window}
+                className="grid grid-cols-12 items-baseline gap-4 py-4"
+              >
+                <dt className="col-span-12 font-mono text-sm tracking-tight sm:col-span-5">
+                  {p.window}
+                </dt>
+                <dd className="col-span-12 text-sm text-muted-foreground sm:col-span-7">
+                  {outcome}
+                </dd>
+              </div>
+            )
+          })}
         </dl>
       </div>
 
@@ -69,9 +88,9 @@ export function PolicyStep() {
           onCheckedChange={(v) => setAgreed(!!v)}
         />
         <label htmlFor="agree" className="text-sm leading-relaxed">
-          I have read and agree to the cancellation and no-show policy. I
-          understand my deposit may be forfeited if I cancel within 24 hours or
-          do not show up.
+          {service.deposit === 0
+            ? "I have read and agree to the cancellation and no-show policy."
+            : "I have read and agree to the cancellation and no-show policy. I understand my deposit may be forfeited if I cancel within 24 hours or do not show up."}
         </label>
       </div>
 
@@ -84,7 +103,7 @@ export function PolicyStep() {
           Back
         </Button>
         <Button onClick={handleConfirm} disabled={!agreed}>
-          Proceed to payment
+          {service.deposit === 0 ? "Confirm booking" : "Proceed to payment"}
         </Button>
       </div>
     </div>

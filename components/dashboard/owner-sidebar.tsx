@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LashMark } from "@/components/shared/lash-mark"
+import { Logo } from "@/components/shared/logo"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -25,10 +25,7 @@ export function OwnerSidebar() {
   return (
     <aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-sidebar text-sidebar-foreground md:flex">
       <div className="flex items-center gap-3 p-6">
-        <LashMark size={22} className="text-sidebar-foreground" />
-        <span className="text-sm font-bold tracking-tight uppercase">
-          Lash by Nadia
-        </span>
+        <Logo size={22} asLink={false} />
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-2">
