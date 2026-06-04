@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -14,7 +14,11 @@ export function BookingLanding() {
   const [scrollY, setScrollY] = useState(0)
   const router = useRouter()
 
-  const lenis = useLenis(({ scroll }) => setScrollY(scroll), [])
+  const onScroll = useCallback(
+    ({ scroll }: { scroll: number }) => setScrollY(scroll),
+    []
+  )
+  const lenis = useLenis(onScroll)
 
   const selectedService = services.find((s) => s.slug === selected)
 

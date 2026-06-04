@@ -3,7 +3,10 @@ import { z } from "zod"
 export const NewClientSchema = z.object({
   name: z.string().min(1),
   email: z.email(),
-  phone: z.string().min(1),
+  phone: z
+    .string()
+    .min(1)
+    .regex(/^[\d\s+\-().]{7,}$/, "Please enter a valid phone number"),
   allergies: z.string().optional(),
   referralSource: z.string().optional(),
 })

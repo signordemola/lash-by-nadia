@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { getAppointmentByToken } from "@/lib/tokens"
+import { getAppointmentByToken, DatabaseUnavailableError } from "@/lib/tokens"
 import { getCancellationOutcome, isRescheduleAllowed } from "@/lib/policy"
 import { formatDate, formatTime, formatCurrency } from "@/lib/utils"
 import { StatusBadge } from "@/components/shared/status-badge"
@@ -13,7 +13,32 @@ export default async function ManagePage({
   params: Promise<{ token: string }>
 }) {
   const { token } = await params
-  const appointment = await getAppointmentByToken(token)
+
+  let appointment
+  try {
+    appointment = await getAppointmentByToken(token)
+  } catch (err) {
+    if (err instanceof DatabaseUnavailableError) {
+      return (
+        <div className="mx-auto max-w-xl text-center">
+          <StatusBadge variant="destructive" className="mb-6">
+            Service unavailable
+          </StatusBadge>
+          <h1 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
+            We&apos;re having trouble connecting.
+          </h1>
+          <p className="mb-8 text-sm text-muted-foreground">
+            Our database is temporarily unreachable. Your appointment is safe —
+            please try again in a few minutes.
+          </p>
+          <Link href={`/appointment/${token}`}>
+            <Button>Try again</Button>
+          </Link>
+        </div>
+      )
+    }
+    throw err
+  }
 
   if (
     !appointment ||

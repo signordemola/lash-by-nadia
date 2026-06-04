@@ -21,6 +21,7 @@ function PaymentForm() {
   const { serviceSlug, date, time, goToStep } = useBookingState()
   const [error, setError] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
+  const [elementReady, setElementReady] = useState(false)
 
   const service = services.find((s) => s.slug === serviceSlug)
   if (!service || !date || !time) return null
@@ -70,7 +71,7 @@ function PaymentForm() {
       </div>
 
       <div className="mb-6 rounded-sm border border-border p-4">
-        <PaymentElement />
+        <PaymentElement onReady={() => setElementReady(true)} />
       </div>
 
       {process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.startsWith(
@@ -107,7 +108,7 @@ function PaymentForm() {
         >
           Back
         </Button>
-        <Button type="submit" disabled={!stripe || processing}>
+        <Button type="submit" disabled={!stripe || processing || !elementReady}>
           {processing ? "Processing..." : `Pay £${service.deposit} deposit`}
         </Button>
       </div>
@@ -167,6 +168,35 @@ export function PaymentStep() {
         >
           <PaymentForm />
         </Elements>
+      ) : checkout.data?.free ? (
+        <div>
+          <div className="mb-6 rounded-sm border border-border bg-muted/30 p-6">
+            <h2 className="mb-1 font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
+              Free booking
+            </h2>
+            <p className="text-2xl font-bold tracking-tight">£0</p>
+            <p className="text-sm text-muted-foreground">
+              {services.find((s) => s.slug === serviceSlug)?.name ??
+                serviceSlug}{" "}
+              on {date} at {time}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              No deposit required for this service.
+            </p>
+          </div>
+          <div className="flex justify-between border-t border-border pt-6">
+            <Button
+              variant="link"
+              onClick={() => goToStep("policy")}
+              className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase hover:text-foreground"
+            >
+              Back
+            </Button>
+            <Button onClick={() => goToStep("complete")}>
+              Confirm booking
+            </Button>
+          </div>
+        </div>
       ) : checkout.isError ? (
         <div className="rounded-sm border border-destructive/30 bg-destructive/5 p-8 text-center">
           <p className="mb-4 text-sm text-destructive">

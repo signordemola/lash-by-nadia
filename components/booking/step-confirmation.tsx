@@ -17,10 +17,33 @@ export function ConfirmationStep({
 
   const service = services.find((s) => s.slug === serviceSlug)
   const paymentIntent = searchParams.get("payment_intent")
+  const redirectStatus = searchParams.get("redirect_status")
 
+  // Payment failed — Stripe redirected back with an error
+  if (paymentIntent && redirectStatus === "failed") {
+    return (
+      <div className="mx-auto max-w-xl text-center">
+        <StatusBadge variant="accent" className="mb-6">
+          Payment failed
+        </StatusBadge>
+        <h1 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
+          Something went wrong.
+        </h1>
+        <p className="mb-8 text-sm text-muted-foreground">
+          Your payment was not completed and no slot has been held. Please try
+          again — your card has not been charged.
+        </p>
+        <Link href={serviceSlug ? `/${serviceSlug}` : "/"} onClick={reset}>
+          <Button>Try again</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  // Stripe redirect present but state cleared by page reload (succeeded or processing)
   if (
     showFallback &&
-    !paymentIntent &&
+    !!paymentIntent &&
     (!serviceSlug || !date || !time || !clientInfo || !service)
   ) {
     return (

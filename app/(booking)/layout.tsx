@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { LashMark } from "@/components/shared/lash-mark"
 import { HoldTimer } from "@/components/booking/hold-timer"
+import { CancelBookingLink } from "@/components/booking/cancel-booking-link"
 
 export const metadata: Metadata = {
   title: "Book a Treatment — Lash by Nadia",
@@ -24,14 +25,10 @@ export default function BookingLayout({
               Lash by Nadia
             </span>
           </Link>
-          <Link
-            href="/"
-            className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase transition-colors hover:text-foreground"
-          >
-            Cancel
-          </Link>
+          <CancelBookingLink />
         </div>
       </header>
+
       <HoldTimer />
       <main className="mx-auto max-w-screen-xl px-6 py-12 md:py-20">
         {children}

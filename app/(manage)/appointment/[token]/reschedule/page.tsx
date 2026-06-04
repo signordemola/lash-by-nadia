@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { StatusBadge } from "@/components/shared/status-badge"
-import { useAvailability } from "@/hooks/use-availability"
+import { useAvailability, useAvailableDates } from "@/hooks/use-availability"
+import { useQuery } from "@tanstack/react-query"
 import { format } from "date-fns"
 
 type AppointmentInfo = {
@@ -17,31 +18,49 @@ type AppointmentInfo = {
 export default function ReschedulePage() {
   const { token } = useParams<{ token: string }>()
 
-  const [appointment, setAppointment] = useState<AppointmentInfo | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
+  const [currentMonth, setCurrentMonth] = useState(
+    format(new Date(), "yyyy-MM")
+  )
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
+
+  const { data: appointment, isError: appointmentError } = useQuery({
+    queryKey: ["appointment", token],
+    queryFn: async () => {
+      const r = await fetch(`/api/appointments/${token}`)
+      if (!r.ok) throw new Error("Failed to load")
+      return r.json() as Promise<AppointmentInfo>
+    },
+  })
 
   const { data: slots = [], isLoading } = useAvailability(
     appointment?.service.slug ?? "",
     dateStr
   )
 
-  useEffect(() => {
-    fetch(`/api/appointments/${token}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Failed to load")
-        return r.json()
-      })
-      .then(setAppointment)
-      .catch(() => setError("Failed to load appointment details."))
-  }, [token])
+  const { data: availableDateStrings = [], isLoading: datesLoading } =
+    useAvailableDates(appointment?.service.slug ?? "", currentMonth)
+
+  const availableDates = availableDateStrings.map(
+    (d) => new Date(d + "T00:00:00")
+  )
 
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<{
     newDate: string
     newTime: string
   } | null>(null)
+
+  if (appointmentError) {
+    return (
+      <div className="mx-auto max-w-xl text-center">
+        <p className="text-sm text-muted-foreground">
+          Failed to load appointment details.
+        </p>
+      </div>
+    )
+  }
 
   async function handleSlotSelect(time: string) {
     setSubmitting(true)
@@ -111,13 +130,27 @@ export default function ReschedulePage() {
         <h2 className="mb-4 font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
           Select a date
         </h2>
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={setSelectedDate}
-          disabled={{ before: new Date() }}
-          className="mx-auto w-fit rounded-sm border border-border"
-        />
+        {datesLoading ? (
+          <div className="h-[280px] w-[280px] animate-pulse rounded-sm border border-border bg-muted" />
+        ) : (
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+            onMonthChange={(month: Date) => {
+              setCurrentMonth(format(month, "yyyy-MM"))
+              setSelectedDate(undefined)
+            }}
+            disabled={[
+              { before: new Date() },
+              (date: Date) =>
+                !availableDates.some(
+                  (d) => d.toDateString() === date.toDateString()
+                ),
+            ]}
+            className="mx-auto w-fit rounded-sm border border-border"
+          />
+        )}
       </div>
 
       {selectedDate && (

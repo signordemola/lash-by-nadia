@@ -13,5 +13,9 @@ export async function GET(request: NextRequest) {
   const month = new Date(monthStr + "-01")
   const dates = await getAvailableDates(serviceSlug, month)
 
-  return NextResponse.json(dates)
+  return NextResponse.json(dates, {
+    headers: {
+      "Cache-Control": "s-maxage=60, stale-while-revalidate=300",
+    },
+  })
 }

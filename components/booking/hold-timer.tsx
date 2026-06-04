@@ -17,8 +17,9 @@ export function HoldTimer() {
       setRemaining(r)
       if (r === 0) {
         clearInterval(id)
-        router.push(`/${serviceSlug}?expired=1`)
+        const slug = serviceSlug
         reset()
+        router.push(`/${slug}?expired=1`)
       }
     }
     tick()

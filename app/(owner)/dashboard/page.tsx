@@ -1,17 +1,23 @@
 import { prisma } from "@/lib/db"
-import { startOfDay, endOfDay, format } from "date-fns"
+import { format } from "date-fns"
+import { formatInTimeZone } from "date-fns-tz"
+import { londonDateOnly } from "@/lib/time"
 import { DashboardView } from "@/components/dashboard/today-view"
 
 export const dynamic = "force-dynamic"
 
+const TZ = "Europe/London"
+
 export default async function DashboardPage() {
-  const today = new Date()
+  const todayStr = formatInTimeZone(new Date(), TZ, "yyyy-MM-dd")
+  const todayStart = londonDateOnly(todayStr)
+  const todayEnd = new Date(todayStart.getTime() + 86400000)
 
   const todayAppointments = await prisma.appointment.findMany({
     where: {
       startsAt: {
-        gte: startOfDay(today),
-        lte: endOfDay(today),
+        gte: todayStart,
+        lt: todayEnd,
       },
       status: { in: ["CONFIRMED", "COMPLETED", "NO_SHOW"] },
     },
@@ -19,11 +25,23 @@ export default async function DashboardPage() {
     orderBy: { startsAt: "asc" },
   })
 
+  const monthStart = londonDateOnly(
+    formatInTimeZone(new Date(), TZ, "yyyy-MM-01")
+  )
+  const nextMonthStart = new Date(
+    Number(formatInTimeZone(new Date(), TZ, "yyyy")),
+    Number(formatInTimeZone(new Date(), TZ, "MM")),
+    1
+  )
+  const monthEnd = londonDateOnly(
+    formatInTimeZone(nextMonthStart, TZ, "yyyy-MM-dd")
+  )
+
   const monthStats = await prisma.appointment.aggregate({
     where: {
       startsAt: {
-        gte: new Date(today.getFullYear(), today.getMonth(), 1),
-        lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+        gte: monthStart,
+        lt: monthEnd,
       },
     },
     _count: true,
@@ -34,17 +52,18 @@ export default async function DashboardPage() {
     where: {
       status: "NO_SHOW",
       startsAt: {
-        gte: new Date(today.getFullYear(), today.getMonth(), 1),
-        lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+        gte: monthStart,
+        lt: monthEnd,
       },
     },
   })
 
+  const weekEnd = new Date(todayEnd.getTime() + 6 * 86400000)
   const weekAppointments = await prisma.appointment.findMany({
     where: {
       startsAt: {
-        gte: startOfDay(today),
-        lte: endOfDay(new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000)),
+        gte: todayStart,
+        lt: weekEnd,
       },
       status: "CONFIRMED",
     },
@@ -52,14 +71,15 @@ export default async function DashboardPage() {
   })
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today.getTime() + i * 24 * 60 * 60 * 1000)
+    const d = new Date(todayStart.getTime() + i * 86400000)
+    const dStr = formatInTimeZone(d, TZ, "yyyy-MM-dd")
     return {
       day: format(d, "EEE"),
-      date: d.getDate(),
+      date: new Date(d).getDate(),
       today: i === 0,
       count: weekAppointments.filter((a: { startsAt: Date }) => {
-        const aptDate = format(a.startsAt, "yyyy-MM-dd")
-        return aptDate === format(d, "yyyy-MM-dd")
+        const aptDate = formatInTimeZone(a.startsAt, TZ, "yyyy-MM-dd")
+        return aptDate === dStr
       }).length,
     }
   })

@@ -13,7 +13,9 @@ type CheckoutInput = {
 }
 
 type CheckoutResponse = {
-  clientSecret: string
+  clientSecret?: string
+  free?: boolean
+  manageToken?: string
 }
 
 async function fetchCheckout(data: CheckoutInput): Promise<CheckoutResponse> {

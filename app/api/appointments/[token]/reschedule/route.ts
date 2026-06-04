@@ -62,7 +62,7 @@ export async function POST(
     manageUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/appointment/${token}`,
   })
 
-  await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to: [appointment.client.email],
     subject: `Appointment rescheduled — ${appointment.service.name}`,
@@ -83,6 +83,16 @@ export async function POST(
         ]
       : undefined,
   })
+  if (error) {
+    console.error("[reschedule] Email failed:", error)
+  } else {
+    console.log(
+      "[reschedule] Email sent to:",
+      appointment.client.email,
+      "id:",
+      data?.id
+    )
+  }
 
   return NextResponse.json({
     newDate: formatDate(slot.startsAt),

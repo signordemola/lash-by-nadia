@@ -130,90 +130,90 @@ export function IntakeStep() {
         </div>
       )}
 
-      {(!lookup.data || !lookup.data.found) && (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Field data-invalid={!!errors.name}>
-            <FieldLabel htmlFor="name">Full name</FieldLabel>
-            <Input
-              id="name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Your full name"
-              aria-invalid={!!errors.name}
-            />
-            {errors.name && <FieldError>{errors.name}</FieldError>}
-          </Field>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Field data-invalid={!!errors.name}>
+          <FieldLabel htmlFor="name">Full name</FieldLabel>
+          <Input
+            id="name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="Your full name"
+            aria-invalid={!!errors.name}
+          />
+          {errors.name && <FieldError>{errors.name}</FieldError>}
+        </Field>
 
-          <Field data-invalid={!!errors.email}>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
-            <Input
-              id="email"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="your@email.com"
-              aria-invalid={!!errors.email}
-            />
-            {errors.email && <FieldError>{errors.email}</FieldError>}
-          </Field>
+        <Field data-invalid={!!errors.email}>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="your@email.com"
+            aria-invalid={!!errors.email}
+          />
+          {errors.email && <FieldError>{errors.email}</FieldError>}
+        </Field>
 
-          <Field data-invalid={!!errors.phone}>
-            <FieldLabel htmlFor="phone">Phone</FieldLabel>
-            <Input
-              id="phone"
-              type="tel"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="07123 456 789"
-              aria-invalid={!!errors.phone}
-            />
-            {errors.phone && <FieldError>{errors.phone}</FieldError>}
-          </Field>
+        <Field data-invalid={!!errors.phone}>
+          <FieldLabel htmlFor="phone">Phone</FieldLabel>
+          <Input
+            id="phone"
+            type="tel"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            placeholder="07123 456 789"
+            aria-invalid={!!errors.phone}
+          />
+          {errors.phone && <FieldError>{errors.phone}</FieldError>}
+        </Field>
 
-          <Field>
-            <FieldLabel htmlFor="allergies">
-              Allergies or sensitivities (optional)
-            </FieldLabel>
-            <Input
-              id="allergies"
-              value={form.allergies ?? ""}
-              onChange={(e) => setForm({ ...form, allergies: e.target.value })}
-              placeholder="E.g. latex, adhesive patch test needed"
-            />
-          </Field>
+        <Field>
+          <FieldLabel htmlFor="allergies">
+            Allergies or sensitivities (optional)
+          </FieldLabel>
+          <Input
+            id="allergies"
+            value={form.allergies ?? ""}
+            onChange={(e) => setForm({ ...form, allergies: e.target.value })}
+            placeholder="E.g. latex, adhesive patch test needed"
+          />
+        </Field>
 
-          <Field>
-            <FieldLabel htmlFor="referral">
-              How did you hear about us? (optional)
-            </FieldLabel>
-            <Input
-              id="referral"
-              value={form.referralSource ?? ""}
-              onChange={(e) =>
-                setForm({ ...form, referralSource: e.target.value })
-              }
-              placeholder="Instagram, friend, etc."
-            />
-          </Field>
+        <Field>
+          <FieldLabel htmlFor="referral">
+            How did you hear about us? (optional)
+          </FieldLabel>
+          <Input
+            id="referral"
+            value={form.referralSource ?? ""}
+            onChange={(e) =>
+              setForm({ ...form, referralSource: e.target.value })
+            }
+            placeholder="Instagram, friend, etc."
+          />
+        </Field>
 
-          <div className="flex justify-between border-t border-border pt-6">
-            <Button
-              variant="link"
-              onClick={() => {
-                releaseHold()
-                queryClient.invalidateQueries({
-                  queryKey: ["availability", serviceSlug, date],
-                })
-                goToStep("slot")
-              }}
-              className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase hover:text-foreground"
-            >
-              Back
-            </Button>
-            <Button type="submit">Review policy</Button>
-          </div>
-        </form>
-      )}
+        <div className="flex justify-between border-t border-border pt-6">
+          <Button
+            variant="link"
+            onClick={() => {
+              releaseHold()
+              queryClient.invalidateQueries({
+                queryKey: ["availability", serviceSlug, date],
+              })
+              goToStep("slot")
+            }}
+            className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase hover:text-foreground"
+          >
+            Back
+          </Button>
+          <Button type="submit">
+            {lookup.data?.found ? "Confirm details" : "Review policy"}
+          </Button>
+        </div>
+      </form>
     </div>
   )
 }
