@@ -29,7 +29,7 @@ export default async function AvailabilityPage() {
       <div>
         <h1 className="mb-2 text-2xl font-bold tracking-tight">Availability</h1>
         <p className="text-sm text-muted-foreground">
-          Current configuration (managed via seed data)
+          Current working hours and blocked dates.
         </p>
       </div>
 
@@ -73,7 +73,9 @@ export default async function AvailabilityPage() {
                 >
                   <span className="text-sm font-medium">{formatDate(d)}</span>
                   <span className="font-mono text-[10px] text-muted-foreground">
-                    {b.reason ?? "Blocked"}
+                    {(b.reason ?? "Blocked")
+                      .replace(/\s*[—–-]\s*demo\b.*$/i, "")
+                      .trim() || "Blocked"}
                   </span>
                 </Card>
               )

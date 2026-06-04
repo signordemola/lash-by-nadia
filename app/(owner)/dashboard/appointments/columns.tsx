@@ -14,6 +14,7 @@ export type AppointmentRow = Appointment & {
 
 export const columns: ColumnDef<AppointmentRow>[] = [
   {
+    id: "client.name",
     accessorKey: "client.name",
     header: "Client",
     cell: ({ row }) => (

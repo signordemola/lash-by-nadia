@@ -19,12 +19,12 @@ export async function getAppointmentByToken(token: string) {
       include: { client: true, service: true },
     })
   } catch (err) {
-    // P1001 = can't reach DB, P1002 = timed out reaching DB
+    // P1001 = can't reach DB, P1002 = timed out reaching DB, ETIMEDOUT = TCP timeout (Neon cold-start)
     const isUnreachable =
       err != null &&
       typeof err === "object" &&
       "code" in err &&
-      (err.code === "P1001" || err.code === "P1002")
+      (err.code === "P1001" || err.code === "P1002" || err.code === "ETIMEDOUT")
 
     const isInitError =
       err != null &&

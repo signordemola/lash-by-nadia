@@ -2,35 +2,47 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { StatusBadge } from "@/components/shared/status-badge"
 
 export default function PortalPage() {
   const router = useRouter()
-  const [token, setToken] = useState("")
+  const [email, setEmail] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
-    const trimmed = token.trim()
+    const trimmed = email.trim()
     if (!trimmed) {
-      setError("Enter your booking reference.")
+      setError("Enter the email address used when booking.")
       return
     }
 
     setLoading(true)
     setError(null)
 
-    const res = await fetch(`/api/appointments/${trimmed}`)
-    if (!res.ok) {
-      setError("Booking not found. Check your reference and try again.")
-      setLoading(false)
-      return
-    }
+    try {
+      const res = await fetch("/api/portal/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      })
+      const data = await res.json()
 
-    router.push(`/appointment/${trimmed}`)
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.")
+        return
+      }
+
+      router.push(`/appointment/${data.token}`)
+    } catch {
+      setError("Network error. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -40,31 +52,32 @@ export default function PortalPage() {
       </StatusBadge>
 
       <h1 className="mb-2 text-3xl font-bold tracking-tight md:text-4xl">
-        Your booking.
+        Find your booking.
       </h1>
       <p className="mb-10 text-sm text-muted-foreground">
-        Enter your booking reference from your confirmation email to view,
-        reschedule, or cancel your appointment.
+        Enter the email address you used when booking to view or manage your
+        upcoming appointment.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label
-            htmlFor="token"
+            htmlFor="email"
             className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase"
           >
-            Booking reference
+            Email address
           </label>
           <Input
-            id="token"
-            value={token}
+            id="email"
+            type="email"
+            value={email}
             onChange={(e) => {
-              setToken(e.target.value)
+              setEmail(e.target.value)
               setError(null)
             }}
-            placeholder="e.g. abc123def456ghi789jkl"
-            className="font-mono text-sm tracking-[0.05em]"
-            autoComplete="off"
+            placeholder="you@example.com"
+            className="text-sm"
+            autoComplete="email"
           />
         </div>
 
@@ -75,9 +88,15 @@ export default function PortalPage() {
         )}
 
         <Button type="submit" disabled={loading}>
-          {loading ? "Looking up..." : "Look up"}
+          {loading ? "Looking up..." : "Find my booking"}
         </Button>
       </form>
+
+      <p className="mt-10 text-center font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
+        <Link href="/" className="transition-colors hover:text-foreground">
+          ← Back to home
+        </Link>
+      </p>
     </div>
   )
 }

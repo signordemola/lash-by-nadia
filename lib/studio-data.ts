@@ -1,3 +1,5 @@
+export const currentYear = new Date().getFullYear()
+
 export type Service = {
   slug: string
   name: string

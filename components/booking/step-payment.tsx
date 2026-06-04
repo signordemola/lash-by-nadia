@@ -74,20 +74,6 @@ function PaymentForm() {
         <PaymentElement onReady={() => setElementReady(true)} />
       </div>
 
-      {process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.startsWith(
-        "pk_test"
-      ) && (
-        <div className="mb-6 rounded-sm border border-border bg-muted/30 px-3 py-2">
-          <p className="font-mono text-[10px] text-muted-foreground">
-            <span className="tracking-[0.15em] uppercase">Demo ·</span> Use card{" "}
-            <span className="text-foreground/70 tabular-nums">
-              4242 4242 4242 4242
-            </span>{" "}
-            · any future date · any CVC
-          </p>
-        </div>
-      )}
-
       {error && (
         <p className="mb-4 rounded-sm bg-destructive/10 px-4 py-3 font-mono text-[10px] tracking-[0.15em] text-destructive uppercase">
           {error}

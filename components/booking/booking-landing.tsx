@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useLenis } from "lenis/react"
-import { services, policy } from "@/lib/studio-data"
+import { services, policy, currentYear } from "@/lib/studio-data"
 import { Logo } from "@/components/shared/logo"
 import { SmoothScroll } from "@/components/shared/smooth-scroll"
 
@@ -95,21 +95,15 @@ export function BookingLanding() {
                     →
                   </span>
                 </a>
-                <a
-                  href="#services"
-                  className="link-underline text-xs tracking-[0.18em] text-background/80 uppercase hover:text-background"
-                >
-                  Services & pricing
-                </a>
               </div>
             </div>
 
             <div className="mt-12 grid animate-fade-up grid-cols-2 gap-6 border-t border-background/15 pt-6 font-mono text-[10px] tracking-[0.2em] text-background/70 uppercase [animation-delay:280ms] md:grid-cols-4">
-              <span>Est. 2023</span>
+              <span>Est. {currentYear}</span>
               <span>By appointment only</span>
               <span className="hidden md:block">Hypoallergenic adhesive</span>
               <span className="hidden md:block md:text-right">
-                Tue – Sat, 10 – 18
+                Tue – Sat, 10am – 6pm
               </span>
             </div>
           </div>
@@ -326,7 +320,7 @@ export function BookingLanding() {
                 Hours
               </span>
               <p className="text-sm leading-relaxed opacity-90">
-                Tue – Sat, 10:00 – 18:00
+                Tue – Sat, 10am – 6pm
                 <br />
                 <span className="opacity-60">By appointment only</span>
               </p>
@@ -356,7 +350,7 @@ export function BookingLanding() {
             </div>
           </div>
           <div className="mx-auto mt-14 flex max-w-7xl flex-col gap-3 border-t border-background/10 pt-6 font-mono text-[10px] tracking-[0.2em] uppercase opacity-40 md:flex-row md:justify-between">
-            <span>© 2026 Lash by Nadia · Made in London</span>
+            <span>© {currentYear} Lash by Nadia · Made in London</span>
             <span>
               <Link href="/portal" className="underline hover:opacity-100">
                 Manage booking

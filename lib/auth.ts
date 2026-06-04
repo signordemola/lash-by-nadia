@@ -1,11 +1,9 @@
-import { verify } from "argon2"
+import { createHash, timingSafeEqual } from "crypto"
 
-export async function verifyPassword(
-  password: string,
-  hash: string
-): Promise<boolean> {
+export function verifyPassword(password: string, hash: string): boolean {
+  const inputHash = createHash("sha256").update(password).digest("hex")
   try {
-    return await verify(hash, password)
+    return timingSafeEqual(Buffer.from(inputHash), Buffer.from(hash))
   } catch {
     return false
   }

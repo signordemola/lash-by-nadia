@@ -46,29 +46,34 @@ export function SlotPickerStep() {
     setHoldingTime(slot.time)
     setHoldError(null)
 
-    const res = await fetch("/api/slots/hold", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        serviceSlug: params.serviceSlug,
-        date: dateStr,
-        time: slot.time,
-      }),
-    })
-
-    if (!res.ok) {
-      const data = await res.json()
-      setHoldError(data.error ?? "This slot was just taken. Pick another.")
-      setHoldingTime(null)
-      queryClient.invalidateQueries({
-        queryKey: ["availability", params.serviceSlug, dateStr],
+    try {
+      const res = await fetch("/api/slots/hold", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serviceSlug: params.serviceSlug,
+          date: dateStr,
+          time: slot.time,
+        }),
       })
-      return
-    }
 
-    const { holdToken: token, expiresAt } = await res.json()
-    setHold(token, expiresAt)
-    setSlot(dateStr!, slot.time)
+      if (!res.ok) {
+        const data = await res.json()
+        setHoldError(data.error ?? "This slot was just taken. Pick another.")
+        queryClient.invalidateQueries({
+          queryKey: ["availability", params.serviceSlug, dateStr],
+        })
+        return
+      }
+
+      const { holdToken: token, expiresAt } = await res.json()
+      setHold(token, expiresAt)
+      setSlot(dateStr!, slot.time)
+    } catch {
+      setHoldError("Network error. Please try again.")
+    } finally {
+      setHoldingTime(null)
+    }
   }
 
   if (!service) {

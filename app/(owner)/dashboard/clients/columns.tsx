@@ -38,6 +38,7 @@ export const columns: ColumnDef<ClientRow>[] = [
     ),
   },
   {
+    id: "_count.appointments",
     accessorKey: "_count.appointments",
     header: "Visits",
     cell: ({ row }) => (
