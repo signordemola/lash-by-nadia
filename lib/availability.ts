@@ -170,7 +170,9 @@ export async function getAvailableSlots(
   dateStr: string
 ): Promise<SlotOption[]> {
   const date = londonDateOnly(dateStr)
-  const dayOfWeek = getDay(date)
+  const [y, mo, dy] = dateStr.split("-").map(Number)
+  const dayOfWeek = new Date(y, mo - 1, dy).getDay()
+  const dayEnd = new Date(date.getTime() + 86400000)
 
   const [service, availability, existingAppointments, heldSlots] =
     await Promise.all([
@@ -180,19 +182,13 @@ export async function getAvailableSlots(
       }),
       prisma.appointment.findMany({
         where: {
-          startsAt: {
-            gte: startOfDay(date),
-            lt: startOfDay(new Date(date.getTime() + 86400000)),
-          },
+          startsAt: { gte: date, lt: dayEnd },
           status: "CONFIRMED",
         },
       }),
       prisma.slotHold.findMany({
         where: {
-          startsAt: {
-            gte: startOfDay(date),
-            lt: startOfDay(new Date(date.getTime() + 86400000)),
-          },
+          startsAt: { gte: date, lt: dayEnd },
           expiresAt: { gt: new Date() },
         },
       }),
