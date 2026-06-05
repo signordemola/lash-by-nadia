@@ -251,7 +251,7 @@ function AppointmentRow({
               {formatTime(apt.startsAt)}
             </span>
           </div>
-          <p className="mt-1 font-mono text-[10px] tracking-[0.1em] text-muted-foreground uppercase">
+          <p className="mt-1 font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
             {apt.service.name} · {apt.service.duration}min ·{" "}
             {formatCurrency(apt.depositAmount)}
           </p>
@@ -268,7 +268,7 @@ function AppointmentRow({
             <Button
               variant="outline"
               size="xs"
-              className="h-7 px-2.5 font-mono text-[9px] tracking-[0.1em] uppercase"
+              className="h-7 px-2.5 font-mono text-[9px] tracking-widest uppercase"
               onClick={isPast ? markComplete : undefined}
               disabled={isLoading || !isPast}
             >
@@ -278,7 +278,7 @@ function AppointmentRow({
               <Button
                 variant="destructive"
                 size="xs"
-                className="h-7 px-2.5 font-mono text-[9px] tracking-[0.1em] uppercase"
+                className="h-7 px-2.5 font-mono text-[9px] tracking-widest uppercase"
                 onClick={markNoShow}
                 disabled={isLoading}
               >
