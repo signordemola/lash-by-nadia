@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
 
   const paymentIntent = await stripe.paymentIntents.create(
     {
-      amount: service.deposit * 100,
+      amount: service.deposit,
       currency: "gbp",
       metadata: {
         holdToken,

@@ -9,8 +9,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(pounds: number): string {
-  return `£${pounds.toFixed(2)}`
+export function formatCurrency(pence: number): string {
+  return `£${(pence / 100).toFixed(2)}`
 }
 
 export function formatDate(date: Date): string {

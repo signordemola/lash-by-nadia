@@ -1,4 +1,8 @@
 import { prisma } from "@/lib/db"
+import { londonDate, londonDateOnly } from "@/lib/time"
+import { formatInTimeZone } from "date-fns-tz"
+
+const TZ = "Europe/London"
 
 async function main() {
   const now = new Date()
@@ -73,15 +77,17 @@ async function main() {
     ],
   })
 
-  const nextWeek = new Date(now.getTime() + 7 * 86400000)
+  const nextWeekBase = new Date(now.getTime() + 7 * 86400000)
+  const nextWeekStr = formatInTimeZone(nextWeekBase, TZ, "yyyy-MM-dd")
   await prisma.blockedDate.create({
-    data: { date: nextWeek, reason: "Personal day — demo blocked date" },
+    data: { date: londonDateOnly(nextWeekStr), reason: "Personal day" },
   })
 
-  function d(offsetDays: number, hours: number, minutes = 0) {
-    const dt = new Date(now.getTime() + offsetDays * 86400000)
-    dt.setHours(hours, minutes, 0, 0)
-    return dt
+  function d(offsetDays: number, hours: number, minutes = 0): Date {
+    const base = new Date(now.getTime() + offsetDays * 86400000)
+    const dateStr = formatInTimeZone(base, TZ, "yyyy-MM-dd")
+    const timeStr = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`
+    return londonDate(dateStr, timeStr)
   }
 
   function end(start: Date, durationMin: number) {
