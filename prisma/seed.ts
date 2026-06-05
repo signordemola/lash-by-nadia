@@ -88,7 +88,18 @@ async function main() {
     return new Date(start.getTime() + durationMin * 60000)
   }
 
-  const [amara, priya, maya, sofia, yuki, eleanor] = await Promise.all([
+  const [
+    amara,
+    priya,
+    maya,
+    sofia,
+    yuki,
+    eleanor,
+    olivia,
+    chloe,
+    grace,
+    isabella,
+  ] = await Promise.all([
     prisma.client.create({
       data: {
         email: "amara@example.com",
@@ -133,80 +144,208 @@ async function main() {
         phone: "07666 666666",
       },
     }),
+    prisma.client.create({
+      data: {
+        email: "olivia.c@example.com",
+        name: "Olivia Chen",
+        phone: "07777 777777",
+      },
+    }),
+    prisma.client.create({
+      data: {
+        email: "chloe.p@example.com",
+        name: "Chloe Patel",
+        phone: "07888 888888",
+      },
+    }),
+    prisma.client.create({
+      data: {
+        email: "grace.t@example.com",
+        name: "Grace Thompson",
+        phone: "07999 999999",
+      },
+    }),
+    prisma.client.create({
+      data: {
+        email: "isabella.r@example.com",
+        name: "Isabella Rossi",
+        phone: "07500 500500",
+      },
+    }),
   ])
 
   const classic = services[0]
   const hybrid = services[1]
   const volume = services[2]
   const fill = services[3]
+  const removal = services[4]
 
-  const upcoming = [
-    { client: amara, service: hybrid, start: d(0, 10, 0), deposit: 2500 },
-    { client: maya, service: volume, start: d(0, 12, 30), deposit: 3000 },
-    { client: yuki, service: fill, start: d(1, 11, 30), deposit: 1500 },
+  const appointmentsData = [
+    {
+      client: priya,
+      service: classic,
+      start: d(-20, 10, 0),
+      status: "COMPLETED",
+      deposit: 2000,
+    },
+    {
+      client: chloe,
+      service: hybrid,
+      start: d(-18, 13, 0),
+      status: "COMPLETED",
+      deposit: 2500,
+    },
+    {
+      client: grace,
+      service: volume,
+      start: d(-15, 10, 30),
+      status: "COMPLETED",
+      deposit: 3000,
+    },
+    {
+      client: isabella,
+      service: fill,
+      start: d(-14, 14, 0),
+      status: "COMPLETED",
+      deposit: 1500,
+    },
+    {
+      client: amara,
+      service: hybrid,
+      start: d(-12, 11, 0),
+      status: "COMPLETED",
+      deposit: 2500,
+    },
+    {
+      client: sofia,
+      service: hybrid,
+      start: d(-10, 10, 0),
+      status: "NO_SHOW",
+      deposit: 2500,
+      depositStatus: "FORFEITED",
+      noShowMarked: true,
+    },
+    {
+      client: eleanor,
+      service: removal,
+      start: d(-10, 14, 0),
+      status: "COMPLETED",
+      deposit: 0,
+    },
+    {
+      client: yuki,
+      service: classic,
+      start: d(-8, 13, 30),
+      status: "COMPLETED",
+      deposit: 2000,
+    },
+    {
+      client: maya,
+      service: volume,
+      start: d(-7, 10, 0),
+      status: "COMPLETED",
+      deposit: 3000,
+    },
+    {
+      client: eleanor,
+      service: volume,
+      start: d(-5, 10, 0),
+      status: "COMPLETED",
+      deposit: 3000,
+    },
+    {
+      client: priya,
+      service: fill,
+      start: d(-5, 14, 30),
+      status: "COMPLETED",
+      deposit: 1500,
+    },
+    {
+      client: priya,
+      service: classic,
+      start: d(-3, 14, 0),
+      status: "COMPLETED",
+      deposit: 2000,
+    },
+    {
+      client: sofia,
+      service: fill,
+      start: d(-1, 14, 0),
+      status: "NO_SHOW",
+      deposit: 1500,
+      depositStatus: "FORFEITED",
+      noShowMarked: true,
+    },
+    {
+      client: amara,
+      service: hybrid,
+      start: d(0, 10, 0),
+      status: "CONFIRMED",
+      deposit: 2500,
+    },
+    {
+      client: maya,
+      service: volume,
+      start: d(0, 13, 0),
+      status: "CONFIRMED",
+      deposit: 3000,
+    },
+    {
+      client: olivia,
+      service: fill,
+      start: d(0, 16, 0),
+      status: "CONFIRMED",
+      deposit: 1500,
+    },
+    {
+      client: yuki,
+      service: fill,
+      start: d(1, 11, 30),
+      status: "CONFIRMED",
+      deposit: 1500,
+    },
+    {
+      client: chloe,
+      service: classic,
+      start: d(2, 10, 0),
+      status: "CONFIRMED",
+      deposit: 2000,
+    },
+    {
+      client: grace,
+      service: volume,
+      start: d(3, 14, 0),
+      status: "CONFIRMED",
+      deposit: 3000,
+    },
+    {
+      client: isabella,
+      service: hybrid,
+      start: d(4, 11, 0),
+      status: "CONFIRMED",
+      deposit: 2500,
+    },
   ]
 
-  for (const a of upcoming) {
+  for (const a of appointmentsData) {
     await prisma.appointment.create({
       data: {
         clientId: a.client.id,
         serviceId: a.service.id,
         startsAt: a.start,
         endsAt: end(a.start, a.service.duration),
-        status: "CONFIRMED",
+        status: a.status as "CONFIRMED" | "COMPLETED" | "NO_SHOW",
         depositAmount: a.deposit,
-        depositStatus: "HELD",
-        manageToken: `demo-${a.client.email.split("@")[0]}`,
+        depositStatus: (a.depositStatus ?? "HELD") as "HELD" | "FORFEITED",
+        manageToken: `demo-${a.client.email.split("@")[0]}-${a.start.getTime()}`,
         policyAgreedAt: now,
-      },
-    })
-  }
-
-  const completed = [
-    { client: priya, service: classic, start: d(-3, 14, 0), deposit: 2000 },
-    { client: eleanor, service: volume, start: d(-5, 10, 0), deposit: 3000 },
-  ]
-
-  for (const a of completed) {
-    await prisma.appointment.create({
-      data: {
-        clientId: a.client.id,
-        serviceId: a.service.id,
-        startsAt: a.start,
-        endsAt: end(a.start, a.service.duration),
-        status: "COMPLETED",
-        depositAmount: a.deposit,
-        depositStatus: "HELD",
-        manageToken: `demo-${a.client.email.split("@")[0]}`,
-        policyAgreedAt: now,
-      },
-    })
-  }
-
-  const noShows = [
-    { client: sofia, service: fill, start: d(-1, 14, 0), deposit: 1500 },
-    { client: sofia, service: hybrid, start: d(-10, 10, 0), deposit: 2500 },
-  ]
-
-  for (const a of noShows) {
-    await prisma.appointment.create({
-      data: {
-        clientId: a.client.id,
-        serviceId: a.service.id,
-        startsAt: a.start,
-        endsAt: end(a.start, a.service.duration),
-        status: "NO_SHOW",
-        depositAmount: a.deposit,
-        depositStatus: "FORFEITED",
-        manageToken: `demo-${a.client.email.split("@")[0]}-ns`,
-        policyAgreedAt: now,
-        noShowMarkedAt: now,
+        noShowMarkedAt: a.noShowMarked ? now : null,
       },
     })
   }
 
   console.log(
-    "Seed complete: 5 services, 5 availability, 1 blocked, 6 clients, 7 appointments"
+    "Seed complete: 5 services, 5 availability, 1 blocked, 10 clients, 20 appointments"
   )
 }
 

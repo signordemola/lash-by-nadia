@@ -1,6 +1,11 @@
+import type { Metadata } from "next"
 import { prisma } from "@/lib/db"
 import { Card } from "@/components/ui/card"
 import { formatDate } from "@/lib/utils"
+
+export const metadata: Metadata = {
+  title: "Availability",
+}
 
 export const dynamic = "force-dynamic"
 

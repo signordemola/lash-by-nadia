@@ -1,8 +1,13 @@
+import type { Metadata } from "next"
 import { prisma } from "@/lib/db"
-import { format } from "date-fns"
+import { format, startOfWeek } from "date-fns"
 import { formatInTimeZone } from "date-fns-tz"
 import { londonDateOnly } from "@/lib/time"
 import { DashboardView } from "@/components/dashboard/today-view"
+
+export const metadata: Metadata = {
+  title: "Today's View",
+}
 
 export const dynamic = "force-dynamic"
 
@@ -58,25 +63,26 @@ export default async function DashboardPage() {
     },
   })
 
-  const weekEnd = new Date(todayEnd.getTime() + 6 * 86400000)
+  const weekStart = startOfWeek(todayStart, { weekStartsOn: 1 })
+  const weekEnd = new Date(weekStart.getTime() + 7 * 86400000)
   const weekAppointments = await prisma.appointment.findMany({
     where: {
       startsAt: {
-        gte: todayStart,
+        gte: weekStart,
         lt: weekEnd,
       },
-      status: "CONFIRMED",
+      status: { in: ["CONFIRMED", "COMPLETED", "NO_SHOW"] },
     },
     select: { startsAt: true },
   })
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(todayStart.getTime() + i * 86400000)
+    const d = new Date(weekStart.getTime() + i * 86400000)
     const dStr = formatInTimeZone(d, TZ, "yyyy-MM-dd")
     return {
       day: format(d, "EEE"),
-      date: new Date(d).getDate(),
-      today: i === 0,
+      date: d.getDate(),
+      today: dStr === todayStr,
       count: weekAppointments.filter((a: { startsAt: Date }) => {
         const aptDate = formatInTimeZone(a.startsAt, TZ, "yyyy-MM-dd")
         return aptDate === dStr

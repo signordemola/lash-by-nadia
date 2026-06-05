@@ -1,6 +1,11 @@
+import type { Metadata } from "next"
 import { prisma } from "@/lib/db"
 import { DataTable } from "@/components/ui/data-table"
 import { columns, type AppointmentRow } from "./columns"
+
+export const metadata: Metadata = {
+  title: "Appointments",
+}
 
 export const dynamic = "force-dynamic"
 
