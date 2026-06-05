@@ -26,7 +26,7 @@ export function BookingLanding() {
     <SmoothScroll>
       <div className="min-h-screen bg-background text-foreground selection:bg-accent/20 selection:text-accent">
         {/* Hero */}
-        <section className="relative h-svh min-h-160 w-full overflow-hidden text-background">
+        <section className="relative h-svh min-h-140 w-full overflow-hidden text-background md:min-h-160">
           <div className="absolute inset-0 animate-hero-zoom will-change-transform">
             <Image
               src="/hero-lashes.jpg"
@@ -66,7 +66,7 @@ export function BookingLanding() {
             </div>
           </nav>
 
-          <div className="relative z-10 mx-auto flex h-[calc(100svh-92px)] min-h-137 max-w-7xl flex-col justify-end px-6 pb-12 md:pb-20">
+          <div className="relative z-10 mx-auto flex h-[calc(100svh-92px)] min-h-110 max-w-7xl flex-col justify-end px-6 pb-12 md:min-h-137 md:pb-20">
             <div className="max-w-[34ch] animate-fade-up [animation-delay:120ms]">
               <span className="mb-6 inline-flex items-center gap-2.5 font-mono text-[10px] tracking-[0.3em] uppercase">
                 <span className="size-1.5 animate-pulse-dot rounded-full bg-accent" />
@@ -75,7 +75,7 @@ export function BookingLanding() {
               <h1 className="text-[44px] leading-[0.94] font-bold tracking-[-0.02em] text-balance sm:text-6xl md:text-7xl">
                 The geometry
                 <br />
-                of the <span className="text-accent italic">eye.</span>
+                of the <span className="text-[#D4A5A5] italic">eye.</span>
               </h1>
               <p className="mt-5 max-w-[34ch] text-[15px] leading-relaxed text-background/80 md:text-base">
                 Solo lash artistry in East London. Hand-built sets, two hours of
@@ -100,7 +100,9 @@ export function BookingLanding() {
 
             <div className="mt-12 grid animate-fade-up grid-cols-2 gap-6 border-t border-background/15 pt-6 font-mono text-[10px] tracking-[0.2em] text-background/70 uppercase [animation-delay:280ms] md:grid-cols-4">
               <span>Est. {currentYear}</span>
-              <span>By appointment only</span>
+              <span className="text-right md:text-left">
+                By appointment only
+              </span>
               <span className="hidden md:block">Hypoallergenic adhesive</span>
               <span className="hidden md:block md:text-right">
                 Tue – Sat, 10am – 6pm
@@ -181,8 +183,8 @@ export function BookingLanding() {
                         {s.description}
                       </p>
                     </div>
-                    <div className="mt-5 flex shrink-0 items-center gap-6 md:mt-0 md:ml-8 md:gap-8">
-                      <div className="flex flex-col items-end">
+                    <div className="mt-5 flex w-full shrink-0 items-center justify-between gap-6 md:mt-0 md:ml-8 md:w-auto md:justify-start md:gap-8">
+                      <div className="flex flex-col items-start md:items-end">
                         <span className="font-mono text-2xl tracking-tighter">
                           £{s.price}
                         </span>
