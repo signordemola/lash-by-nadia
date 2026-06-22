@@ -6,7 +6,10 @@ export const NewClientSchema = z.object({
   phone: z
     .string()
     .min(1)
-    .regex(/^[\d\s+\-().]{7,}$/, "Please enter a valid phone number"),
+    .regex(
+      /^07\d{3} \d{6}$/,
+      "Please enter a valid UK mobile number (e.g. 07123 456789)"
+    ),
   allergies: z.string().optional(),
   referralSource: z.string().optional(),
 })

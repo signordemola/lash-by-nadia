@@ -12,6 +12,14 @@ import { services } from "@/lib/studio-data"
 import { NewClientSchema } from "@/schemas/booking.schema"
 import type { ClientInfo } from "@/hooks/use-booking-state"
 
+function formatUKPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 11)
+  if (digits.length > 5) {
+    return `${digits.slice(0, 5)} ${digits.slice(5)}`
+  }
+  return digits
+}
+
 export function IntakeStep() {
   const { serviceSlug, date, time, setClientInfo, goToStep, releaseHold } =
     useBookingState()
@@ -162,8 +170,10 @@ export function IntakeStep() {
             id="phone"
             type="tel"
             value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            placeholder="07123 456 789"
+            onChange={(e) =>
+              setForm({ ...form, phone: formatUKPhone(e.target.value) })
+            }
+            placeholder="07123 456789"
             aria-invalid={!!errors.phone}
           />
           {errors.phone && <FieldError>{errors.phone}</FieldError>}

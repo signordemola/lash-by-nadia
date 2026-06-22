@@ -69,6 +69,7 @@ async function main() {
 
   await prisma.weeklyAvailability.createMany({
     data: [
+      { dayOfWeek: 1, startTime: "10:00", endTime: "18:00", isActive: true },
       { dayOfWeek: 2, startTime: "10:00", endTime: "18:00", isActive: true },
       { dayOfWeek: 3, startTime: "10:00", endTime: "18:00", isActive: true },
       { dayOfWeek: 4, startTime: "10:00", endTime: "18:00", isActive: true },
@@ -110,28 +111,28 @@ async function main() {
       data: {
         email: "amara@example.com",
         name: "Amara Okonkwo",
-        phone: "07111 111111",
+        phone: "07712 483920",
       },
     }),
     prisma.client.create({
       data: {
         email: "priya.s@example.com",
         name: "Priya Shah",
-        phone: "07222 222222",
+        phone: "07834 619047",
       },
     }),
     prisma.client.create({
       data: {
         email: "maya.l@example.com",
         name: "Maya Lindqvist",
-        phone: "07333 333333",
+        phone: "07958 302716",
       },
     }),
     prisma.client.create({
       data: {
         email: "sofia.r@example.com",
         name: "Sofia Reyes",
-        phone: "07444 444444",
+        phone: "07463 851290",
         noShowCount: 2,
         isFlagged: true,
       },
@@ -140,42 +141,42 @@ async function main() {
       data: {
         email: "yuki@example.com",
         name: "Yuki Tanaka",
-        phone: "07555 555555",
+        phone: "07391 274856",
       },
     }),
     prisma.client.create({
       data: {
         email: "e.cho@example.com",
         name: "Eleanor Cho",
-        phone: "07666 666666",
+        phone: "07527 963401",
       },
     }),
     prisma.client.create({
       data: {
         email: "olivia.c@example.com",
         name: "Olivia Chen",
-        phone: "07777 777777",
+        phone: "07648 130592",
       },
     }),
     prisma.client.create({
       data: {
         email: "chloe.p@example.com",
         name: "Chloe Patel",
-        phone: "07888 888888",
+        phone: "07793 408165",
       },
     }),
     prisma.client.create({
       data: {
         email: "grace.t@example.com",
         name: "Grace Thompson",
-        phone: "07999 999999",
+        phone: "07821 054739",
       },
     }),
     prisma.client.create({
       data: {
         email: "isabella.r@example.com",
         name: "Isabella Rossi",
-        phone: "07500 500500",
+        phone: "07904 372618",
       },
     }),
   ])
@@ -351,7 +352,7 @@ async function main() {
   }
 
   console.log(
-    "Seed complete: 5 services, 5 availability, 1 blocked, 10 clients, 20 appointments"
+    "Seed complete: 5 services, 6 availability (Mon-Sat), 1 blocked, 10 clients, 20 appointments"
   )
 }
 
