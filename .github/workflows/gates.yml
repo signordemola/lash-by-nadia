@@ -33,8 +33,6 @@ jobs:
       RESEND_API_KEY: re_placeholder
       EMAIL_FROM: Lash by Nadia <noreply@example.com>
       NEXT_PUBLIC_BASE_URL: http://localhost:3000
-      UPSTASH_REDIS_REST_URL: https://placeholder.upstash.io
-      UPSTASH_REDIS_REST_TOKEN: placeholder
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

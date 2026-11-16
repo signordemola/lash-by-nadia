@@ -1,33 +1,46 @@
-import { Ratelimit } from "@upstash/ratelimit"
-import { Redis } from "@upstash/redis"
+type RateLimitWindow = `${number} m` | `${number} s`
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-  retry: { retries: 1 },
-})
+type Counter = { count: number; resetAt: number }
 
-export function createRateLimiter(
+const MAX_TRACKED_IDENTIFIERS = 5000
+
+const toMilliseconds = (window: RateLimitWindow): number => {
+  const [amount, unit] = window.split(" ")
+  return Number(amount) * (unit === "m" ? 60_000 : 1000)
+}
+
+const removeExpired = (counters: Map<string, Counter>, now: number): void => {
+  for (const [identifier, counter] of counters) {
+    if (counter.resetAt <= now) {
+      counters.delete(identifier)
+    }
+  }
+}
+
+export const createRateLimiter = (
   requests: number,
-  window: `${number} m` | `${number} s`
-) {
-  const ratelimit = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(requests, window),
-  })
+  window: RateLimitWindow
+) => {
+  const windowMs = toMilliseconds(window)
+  const counters = new Map<string, Counter>()
 
   return {
-    limit: async (identifier: string): Promise<{ success: boolean }> => {
-      try {
-        const { success } = await ratelimit.limit(identifier)
-        return { success }
-      } catch (error) {
-        console.error(
-          "[rate-limit] Store unreachable. Request allowed without a limit:",
-          error
-        )
+    limit: async (
+      identifier: string,
+      now: number = Date.now()
+    ): Promise<{ success: boolean }> => {
+      const counter = counters.get(identifier)
+
+      if (!counter || counter.resetAt <= now) {
+        if (counters.size >= MAX_TRACKED_IDENTIFIERS) {
+          removeExpired(counters, now)
+        }
+        counters.set(identifier, { count: 1, resetAt: now + windowMs })
         return { success: true }
       }
+
+      counter.count += 1
+      return { success: counter.count <= requests }
     },
   }
 }

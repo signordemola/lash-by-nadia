@@ -1,49 +1,60 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
-
-const storeLimit = vi.fn()
-
-vi.mock("@upstash/redis", () => ({
-  Redis: class {},
-}))
-
-vi.mock("@upstash/ratelimit", () => ({
-  Ratelimit: class {
-    static slidingWindow = () => ({})
-    limit = storeLimit
-  },
-}))
-
+import { describe, expect, it } from "vitest"
 import { createRateLimiter } from "@/lib/rate-limit"
 
+const START = Date.parse("2026-11-16T10:00:00Z")
+
 describe("createRateLimiter", () => {
-  beforeEach(() => {
-    storeLimit.mockReset()
-    vi.spyOn(console, "error").mockImplementation(() => undefined)
-  })
+  it("allows requests up to the limit and blocks the next one", async () => {
+    const limiter = createRateLimiter(3, "1 m")
 
-  it("allows a request that is under the limit", async () => {
-    storeLimit.mockResolvedValue({ success: true, remaining: 4 })
-
-    expect(await createRateLimiter(5, "1 m").limit("login:1.2.3.4")).toEqual({
+    expect(await limiter.limit("1.2.3.4", START)).toEqual({ success: true })
+    expect(await limiter.limit("1.2.3.4", START + 1000)).toEqual({
       success: true,
     })
-    expect(storeLimit).toHaveBeenCalledWith("login:1.2.3.4")
-  })
-
-  it("blocks a request that is over the limit", async () => {
-    storeLimit.mockResolvedValue({ success: false, remaining: 0 })
-
-    expect(await createRateLimiter(5, "1 m").limit("login:1.2.3.4")).toEqual({
+    expect(await limiter.limit("1.2.3.4", START + 2000)).toEqual({
+      success: true,
+    })
+    expect(await limiter.limit("1.2.3.4", START + 3000)).toEqual({
       success: false,
     })
   })
 
-  it("allows the request and logs when the store cannot be reached", async () => {
-    storeLimit.mockRejectedValue(new Error("fetch failed"))
+  it("allows requests again when the window ends", async () => {
+    const limiter = createRateLimiter(1, "1 m")
+    await limiter.limit("1.2.3.4", START)
 
-    expect(await createRateLimiter(5, "1 m").limit("login:1.2.3.4")).toEqual({
+    expect(await limiter.limit("1.2.3.4", START + 59_999)).toEqual({
+      success: false,
+    })
+    expect(await limiter.limit("1.2.3.4", START + 60_000)).toEqual({
       success: true,
     })
-    expect(console.error).toHaveBeenCalledTimes(1)
+  })
+
+  it("counts each identifier separately", async () => {
+    const limiter = createRateLimiter(1, "1 m")
+    await limiter.limit("1.2.3.4", START)
+
+    expect(await limiter.limit("5.6.7.8", START)).toEqual({ success: true })
+  })
+
+  it("keeps separate counts for separate limiters", async () => {
+    const signIn = createRateLimiter(1, "1 m")
+    const portal = createRateLimiter(1, "1 m")
+    await signIn.limit("1.2.3.4", START)
+
+    expect(await portal.limit("1.2.3.4", START)).toEqual({ success: true })
+  })
+
+  it("reads a window in seconds", async () => {
+    const limiter = createRateLimiter(1, "10 s")
+    await limiter.limit("1.2.3.4", START)
+
+    expect(await limiter.limit("1.2.3.4", START + 9_999)).toEqual({
+      success: false,
+    })
+    expect(await limiter.limit("1.2.3.4", START + 10_000)).toEqual({
+      success: true,
+    })
   })
 })

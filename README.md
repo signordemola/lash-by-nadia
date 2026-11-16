@@ -2,8 +2,7 @@
 
 A booking site for a solo lash artist. Clients book a slot and pay a deposit online, and the owner manages the day from a dashboard.
 
-<!-- Screenshot: add an image of the booking flow here -->
-<!-- ![Lash by Nadia](docs/screenshot.png) -->
+![Lash by Nadia home page](docs/screenshot.png)
 
 **Live site:** https://lash-by-nadia.vercel.app
 
@@ -36,7 +35,7 @@ It applies the cancellation policy automatically, so the owner does not have to 
 **Under the hood**
 
 - All times are calculated in `Europe/London`. All money is stored in pence.
-- Rate limits on slot hold, checkout, owner sign-in, the portal and the returning-client check.
+- Basic in-memory rate limits on slot hold, checkout, owner sign-in, the portal and the returning-client check.
 - Stripe webhook signature check, and an idempotency key on each payment.
 
 ## Tech stack
@@ -45,7 +44,6 @@ It applies the cancellation policy automatically, so the owner does not have to 
 - PostgreSQL with Prisma 7
 - Stripe (PaymentIntents, Elements, webhooks)
 - Resend and React Email
-- Upstash Redis for rate limits
 - TanStack Query and Zustand
 - Tailwind CSS 4 and shadcn/ui
 - Vitest and Playwright
@@ -58,7 +56,7 @@ You need:
 - Node.js 20.19+, 22.12+ or 24+ (the versions Prisma 7 supports)
 - pnpm 12
 - A PostgreSQL database
-- Stripe test keys, a Resend API key and an Upstash Redis database
+- Stripe test keys and a Resend API key
 
 ```bash
 pnpm install
@@ -93,8 +91,6 @@ Set these in `.env`. The values in `.env.example` are fake.
 | `OWNER_EMAIL`                        | Owner sign-in email                                |
 | `OWNER_PASSWORD_HASH`                | SHA-256 hex of the owner password                  |
 | `NEXT_PUBLIC_BASE_URL`               | Site URL, used for links in emails                 |
-| `UPSTASH_REDIS_REST_URL`             | Upstash Redis URL                                  |
-| `UPSTASH_REDIS_REST_TOKEN`           | Upstash Redis token                                |
 
 Create the password hash with:
 
@@ -123,6 +119,7 @@ Not built yet:
 - Reminder emails before an appointment. Only confirmation and cancellation emails are sent.
 - Editing availability from the dashboard. The page is read-only.
 - More than one owner account.
+- A shared store for rate limits. The current limit is counted in memory for each server instance.
 - More tests. There are tests for slot overlap, owner sessions, the public lookups and the rate limiter, and one Playwright test.
 
 ---
