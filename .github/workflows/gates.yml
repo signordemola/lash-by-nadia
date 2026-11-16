@@ -1,0 +1,57 @@
+name: gates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18 # production's major version
+        env: { POSTGRES_PASSWORD: test, POSTGRES_DB: test }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:test@localhost:5432/test
+      TEST_DATABASE_URL: postgresql://postgres:test@localhost:5432/test
+      STRIPE_SECRET_KEY: sk_test_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_placeholder
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
+      RESEND_API_KEY: re_placeholder
+      EMAIL_FROM: Lash by Nadia <noreply@example.com>
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
+      UPSTASH_REDIS_REST_URL: https://placeholder.upstash.io
+      UPSTASH_REDIS_REST_TOKEN: placeholder
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+        with:
+          runtime: node
+          cache: true
+          require-lockfile: true
+
+      - run: pnpm run typecheck
+      - run: pnpm run lint
+      - run: pnpm run --if-present db:migrate
+      - run: pnpm run test
+
+      - if: hashFiles('DESIGN.md') != ''
+        run: bash scripts/check-design.sh
+
+      - run: pnpm run build

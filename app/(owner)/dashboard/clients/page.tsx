@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { prisma } from "@/lib/db"
+import { requireOwnerPage } from "@/lib/require-owner"
 import { DataTable } from "@/components/ui/data-table"
 import { columns, type ClientRow } from "./columns"
 
@@ -10,6 +11,8 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function ClientsPage() {
+  await requireOwnerPage()
+
   const clients = await prisma.client.findMany({
     include: { _count: { select: { appointments: true } } },
     orderBy: { name: "asc" },

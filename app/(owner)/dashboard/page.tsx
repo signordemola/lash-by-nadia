@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { prisma } from "@/lib/db"
+import { requireOwnerPage } from "@/lib/require-owner"
 import { format, startOfWeek } from "date-fns"
 import { formatInTimeZone } from "date-fns-tz"
 import { londonDateOnly } from "@/lib/time"
@@ -14,6 +15,8 @@ export const dynamic = "force-dynamic"
 const TZ = "Europe/London"
 
 export default async function DashboardPage() {
+  await requireOwnerPage()
+
   const todayStr = formatInTimeZone(new Date(), TZ, "yyyy-MM-dd")
   const todayStart = londonDateOnly(todayStr)
   const todayEnd = new Date(todayStart.getTime() + 86400000)

@@ -8,11 +8,3 @@ export function verifyPassword(password: string, hash: string): boolean {
     return false
   }
 }
-
-export function hasOwnerSession(request: Request): boolean {
-  const cookie = request.headers
-    .get("cookie")
-    ?.split(";")
-    .find((c) => c.trim().startsWith("owner-token="))
-  return cookie?.includes("valid") ?? false
-}

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
+import { hasOwnerSession } from "@/lib/require-owner"
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const token = request.cookies.get("owner-token")
-  if (token?.value !== "valid") {
+  if (!(await hasOwnerSession())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { prisma } from "@/lib/db"
+import { requireOwnerPage } from "@/lib/require-owner"
 import { Card } from "@/components/ui/card"
 import { formatDate } from "@/lib/utils"
 
@@ -20,6 +21,8 @@ const dayLabels: Record<number, string> = {
 }
 
 export default async function AvailabilityPage() {
+  await requireOwnerPage()
+
   const availability = await prisma.weeklyAvailability.findMany({
     where: { isActive: true },
     orderBy: { dayOfWeek: "asc" },

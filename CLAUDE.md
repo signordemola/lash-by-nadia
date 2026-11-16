@@ -42,7 +42,8 @@ node -e "require('crypto').createHash('sha256').update('yourpassword').digest('h
 echo -n "yourpassword" | sha256sum
 ```
 
-Auth cookie is `owner-token`. Middleware checks it. Login route sets it.
+Auth cookie is `owner-token`. It holds a random session token. The SHA-256 hash of the token is a row in `OwnerSession` and is valid for 24 hours.
+`proxy.ts` only checks that the cookie exists (redirect for convenience). The security check is `requireOwnerPage()` in every dashboard page and `hasOwnerSession()` in every owner API route (`lib/require-owner.ts`). Add one of them to every new owner page or route.
 
 ---
 
@@ -702,3 +703,5 @@ AuditLog         → action, entityType, entityId, performedBy, timestamp
 - Subsequent queries: 10–50ms
 - Mitigation: use `@neondatabase/serverless` with WebSocket pooling
 - Dashboard error boundary catches `P1001` (connection refused) gracefully
+
+@AGENTS.md

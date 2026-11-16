@@ -41,13 +41,7 @@ export function IntakeStep() {
     lookup.mutate(email, {
       onSuccess: (data) => {
         if (data.found) {
-          setForm({
-            name: data.name,
-            email,
-            phone: data.phone,
-            allergies: data.allergies ?? "",
-            referralSource: "",
-          })
+          setForm((current) => ({ ...current, email }))
         }
       },
     })
@@ -113,6 +107,11 @@ export function IntakeStep() {
               {lookup.isPending ? "Checking..." : "Look up"}
             </Button>
           </div>
+          {lookup.isError && (
+            <p className="mt-3 text-sm text-muted-foreground">
+              We could not check that email. Please fill in your details below.
+            </p>
+          )}
         </div>
       )}
 
@@ -133,7 +132,7 @@ export function IntakeStep() {
             Welcome back
           </h2>
           <p className="text-sm text-muted-foreground">
-            We found your details. Confirm they&apos;re still correct.
+            Enter your details below. We will add this booking to your history.
           </p>
         </div>
       )}

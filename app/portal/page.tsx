@@ -1,17 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { StatusBadge } from "@/components/shared/status-badge"
 
 export default function PortalPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -37,7 +36,7 @@ export default function PortalPage() {
         return
       }
 
-      router.push(`/appointment/${data.token}`)
+      setSent(true)
     } catch {
       setError("Network error. Please try again.")
     } finally {
@@ -59,6 +58,16 @@ export default function PortalPage() {
         upcoming appointment.
       </p>
 
+      {sent && (
+        <p
+          role="status"
+          className="mb-6 rounded-sm border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground"
+        >
+          If there is an upcoming booking for {email.trim()}, we have sent the
+          link to that address. Check your inbox.
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label
@@ -74,6 +83,7 @@ export default function PortalPage() {
             onChange={(e) => {
               setEmail(e.target.value)
               setError(null)
+              setSent(false)
             }}
             placeholder="you@example.com"
             className="text-sm"

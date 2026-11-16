@@ -1,8 +1,6 @@
 import { useMutation } from "@tanstack/react-query"
 
-type LookupResponse =
-  | { found: true; name: string; phone: string; allergies: string | null }
-  | { found: false }
+type LookupResponse = { found: boolean }
 
 async function lookupClient(email: string): Promise<LookupResponse> {
   const res = await fetch("/api/clients/lookup", {
@@ -10,6 +8,9 @@ async function lookupClient(email: string): Promise<LookupResponse> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   })
+  if (!res.ok) {
+    throw new Error("Client lookup failed")
+  }
   return res.json()
 }
 
